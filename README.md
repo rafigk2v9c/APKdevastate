@@ -59,7 +59,9 @@ Malicious APK-
 
 Example Usage-
 
-The first apk is the malicious one
+The first apk is the malicious one.
+
+The second one is the safe one.
 
 [Click here to Download Demo Video](https://github.com/rafigk2v9c/APKdevastate/blob/master/ss/demo.mp4?raw=true)
 
