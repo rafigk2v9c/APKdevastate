@@ -65,6 +65,8 @@ The second one is the safe one.
 
 [Click here to Download Demo Video](https://github.com/rafigk2v9c/APKdevastate/blob/master/ss/demo.mp4?raw=true)
 
+
+
 > ⚠️ **Disclaimer**: APKdevastate does not guarantee 100% accuracy in all detections or results. Use at your own discretion.
 
 ## 🛠️ Installation
