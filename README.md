@@ -1,5 +1,9 @@
 # 📱 APKdevastate
 
+![Repo Size](https://img.shields.io/github/repo-size/rafigk2v9c/frSpy)
+![Stars](https://img.shields.io/github/stars/rafigk2v9c/frSpy?style=social)
+![Forks](https://img.shields.io/github/forks/rafigk2v9c/frSpy?style=social)
+![Issues](https://img.shields.io/github/issues/rafigk2v9c/frSpy)
 ![APKdevastate Banner](https://your-image-url.com) <!-- Gerekirse görsel URL'sini güncelle -->
 
 **APKdevastate** is a powerful Windows application designed to analyze Android APK files for security risks, malware signatures, and suspicious behaviors.
