@@ -47,7 +47,7 @@ Normal APK-
 ## Usage
 
 1. Open the application  
-2. Click **"Select APK"** to choose apk file  
+2. Click **"Analyze!"** to choose apk file
 3. Click **"RUN"** to begin the security scan
 4. Review the detailed analysis results
 
