@@ -39,7 +39,6 @@ Normal APK-
 
 ## 📦 Requirements
 
-- Windows 7 / 8 / 10 / 11  
 - .NET Framework 4.5+  
 - Java Runtime Environment (JRE)
 
@@ -47,9 +46,6 @@ Normal APK-
 
 ## 🛠️ Installation
 
-1. Download the latest release from the [Releases](../../releases) page  
-2. Extract the ZIP file to your preferred location  
-3. Run the `APKdevastate.exe` file
 
 ---
 
@@ -60,33 +56,3 @@ Normal APK-
 3. Click **"Analyze"** to begin the security scan  
 4. Review the detailed analysis results
 
----
-
-## ⚙️ Technical Details
-
-APKdevastate leverages several tools and techniques to analyze APK files:
-
-- **APKTool**: For decompiling APK resources  
-- **AAPT**: For extracting package information  
-- **APKSigner**: For certificate verification  
-- **Regex Pattern Matching**: For identifying suspicious code patterns  
-- **Certificate Trust Verification**: Against a database of known legitimate organizations  
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-```bash
-# Fork the repository
-# Create your feature branch
-git checkout -b feature/amazing-feature
-
-# Commit your changes
-git commit -m "Add some amazing feature"
-
-# Push to the branch
-git push origin feature/amazing-feature
-
-# Open a Pull Request on GitHub
