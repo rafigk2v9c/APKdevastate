@@ -61,7 +61,7 @@ Example Usage-
 
 The first apk is the malicious one
 
-[▶️](https://github.com/rafigk2v9c/APKdevastate/blob/master/ss/demo.mp4?raw=true)
+[Click here to Download Demo Video](https://github.com/rafigk2v9c/APKdevastate/blob/master/ss/demo.mp4?raw=true)
 
 
 
