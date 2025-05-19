@@ -75,3 +75,7 @@ Download this relase:
 
 ```bash
 https://github.com/rafigk2v9c/APKdevastate/releases/tag/APKdevastate
+
+
+> ⚠️ **Disclaimer**: APKdevastate does not guarantee 100% accuracy in all detections or results. Use at your own discretion.
+
