@@ -17,7 +17,6 @@ The tool helps identify potentially malicious applications by examining permissi
 
 ## 🚀 Features
 
--  **APK Decompilation**: Extracts and analyzes APK file contents  
 -  **Permission Analysis**: Lists and evaluates dangerous Android permissions  
 -  **Certificate Verification**: Validates APK signing certificates against trusted organizations  
 -  **RAT Detection**: Scans for known Remote Access Trojan signatures  
