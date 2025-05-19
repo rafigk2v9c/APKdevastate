@@ -63,26 +63,6 @@ APKdevastate leverages several tools and techniques to analyze APK files:
 
 ---
 
-## 🧬 Known RATs Detected
-
-The tool can identify multiple known Android RAT families, including:
-
-- SpyNote  
-- SpyMax  
-- CraxsRAT  
-- CellikRAT  
-- InsomniaSpy  
-- CypherRAT  
-- EagleSpy  
-- G-700RAT  
-- ENCCN  
-- BrataRAT  
-- EverSpy  
-- BlackSpy  
-- BigSharkRAT  
-
----
-
 ## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
