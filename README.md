@@ -63,6 +63,5 @@ Please download the .rar file with the name of the application and then extract 
 Download this relase:
 
 ```bash
-https://github.com/rafigk2v9c/frSpy/releases/tag/frSpy
----
+https://github.com/rafigk2v9c/frSpy/releases/tag/APKdevastate
 
