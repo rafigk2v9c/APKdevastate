@@ -40,15 +40,15 @@ Normal APK-
 
 ## 📦 Requirements
 
-- .NET Framework 4.5+  
-- Java Runtime Environment (JRE)
+- .NET Framework 4.5+(downloads automatically)
+- Java Runtime Environment (you need to download from the Java site)
 
 ---
 ## Usage
 
 1. Open the application  
-2. Click **"Select APK"** to choose an Android application file  
-3. Click **"Analyze"** to begin the security scan  
+2. Click **"Select APK"** to choose apk file  
+3. Click **"RUN"** to begin the security scan
 4. Review the detailed analysis results
 
 
