@@ -45,16 +45,16 @@ Normal APK-
 - Java Runtime Environment (JRE)
 
 ---
-
-## 🛠️ Installation
-
-
----
-
-## ▶️ Usage
+## Usage
 
 1. Open the application  
 2. Click **"Select APK"** to choose an Android application file  
 3. Click **"Analyze"** to begin the security scan  
 4. Review the detailed analysis results
+
+
+## 🛠️ Installation
+
+
+---
 
