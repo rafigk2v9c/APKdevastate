@@ -1,4 +1,4 @@
-# 📱 APKdevastate
+# APKdevastate
 
 ![Repo Size](https://img.shields.io/github/repo-size/rafigk2v9c/APKdevastate)
 ![Stars](https://img.shields.io/github/stars/rafigk2v9c/APKdevastate?style=social)
