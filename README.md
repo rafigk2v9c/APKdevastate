@@ -15,7 +15,7 @@ The tool helps identify potentially malicious applications by examining permissi
 
 ---
 
-## 🚀 Features
+## Features
 
 -  **Permission Analysis**: Lists and evaluates dangerous Android permissions  
 -  **Certificate Verification**: Validates APK signing certificates against trusted organizations  
@@ -26,7 +26,7 @@ The tool helps identify potentially malicious applications by examining permissi
 
 ---
 
-## 🖼️ Screenshots
+## Screenshots
 
 Payload APK-
 
@@ -42,7 +42,7 @@ Malicious APK-
 
 ---
 
-## 📦 Requirements
+## Requirements
 
 - .NET Framework 4.5+(downloads automatically)
 - Java Runtime Environment (you need to download from the Java site)
