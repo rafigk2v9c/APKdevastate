@@ -36,6 +36,10 @@ Normal APK-
 
 <img src="https://github.com/rafigk2v9c/APKdevastate/blob/master/ss/Screenshot_3.png?raw=true" alt="APKdevastate Screenshot" width="600"/>
 
+Malicious APK-
+
+<img src="https://github.com/rafigk2v9c/APKdevastate/blob/master/ss/Screenshot_4.png?raw=true" alt="APKdevastate Screenshot" width="600"/>
+
 ---
 
 ## 📦 Requirements
