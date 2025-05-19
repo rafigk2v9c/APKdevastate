@@ -40,6 +40,8 @@ Malicious APK-
 
 <img src="https://github.com/rafigk2v9c/APKdevastate/blob/master/ss/Screenshot_4.png?raw=true" alt="APKdevastate Screenshot" width="600"/>
 
+
+
 ---
 
 ## Requirements
@@ -54,6 +56,13 @@ Malicious APK-
 2. Click **"Analyze!"** to choose apk file
 3. Click **"RUN"** to begin the security scan
 4. Review the detailed analysis results
+
+Example Usage-
+
+The first apk is the malicious one
+
+[▶️](https://github.com/rafigk2v9c/APKdevastate/blob/master/ss/demo.mp4?raw=true)
+
 
 
 ## 🛠️ Installation
