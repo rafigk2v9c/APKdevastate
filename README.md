@@ -27,7 +27,12 @@ The tool helps identify potentially malicious applications by examining permissi
 
 ## 🖼️ Screenshots
 
-<img src="https://github.com/rafigk2v9c/APKdevastate/blob/master/ss/Screenshot_2.png?raw=true" alt="APKdevastate Screenshot" width="500"/>
+Payload APK-
+
+<img src="https://github.com/rafigk2v9c/APKdevastate/blob/master/ss/Screenshot_2.png?raw=true" alt="APKdevastate Screenshot" width="600"/>
+
+Normal APK-
+
 <img src="https://github.com/rafigk2v9c/APKdevastate/blob/master/ss/Screenshot_3.png?raw=true" alt="APKdevastate Screenshot" width="600"/>
 
 ---
