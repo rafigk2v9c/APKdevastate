@@ -5,7 +5,9 @@
 ![Forks](https://img.shields.io/github/forks/rafigk2v9c/APKdevastate?style=social)
 ![Issues](https://img.shields.io/github/issues/rafigk2v9c/APKdevastate)
 
-<img src="https://github.com/rafigk2v9c/APKdevastate/blob/master/ss/fireandroid.gif?raw=true" alt="APKdevastate Banner" width="100"/>
+<p align="right">
+  <img src="https://github.com/rafigk2v9c/APKdevastate/blob/master/ss/fireandroid.gif?raw=true" alt="APKdevastate Banner" width="200"/>
+</p>
 
 **APKdevastate** is a powerful Windows application designed to analyze Android APK files for security risks, malware signatures, and suspicious behaviors.
 
