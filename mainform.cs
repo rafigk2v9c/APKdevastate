@@ -515,10 +515,10 @@ namespace APKdevastate
 
             foreach (var org in trustedOrgs)
             {
-                if (Regex.IsMatch(certInfoLower, $@"\bo\s*=\s*[^,]*{Regex.Escape(org)}[^,]*", RegexOptions.IgnoreCase) ||    // Organization
-                    Regex.IsMatch(certInfoLower, $@"\bou\s*=\s*[^,]*{Regex.Escape(org)}[^,]*", RegexOptions.IgnoreCase) ||   // Organizational Unit
-                    Regex.IsMatch(certInfoLower, $@"\bcn\s*=\s*[^,]*{Regex.Escape(org)}[^,]*", RegexOptions.IgnoreCase) ||   // Common Name
-                    Regex.IsMatch(certInfoLower, $@"\bl\s*=\s*[^,]*{Regex.Escape(org)}[^,]*", RegexOptions.IgnoreCase))     // Locality
+                if (Regex.IsMatch(certInfoLower, $@"\bo\s*=\s*[^,]*{Regex.Escape(org)}[^,]*", RegexOptions.IgnoreCase) ||    
+                    Regex.IsMatch(certInfoLower, $@"\bou\s*=\s*[^,]*{Regex.Escape(org)}[^,]*", RegexOptions.IgnoreCase) ||   
+                    Regex.IsMatch(certInfoLower, $@"\bcn\s*=\s*[^,]*{Regex.Escape(org)}[^,]*", RegexOptions.IgnoreCase) ||   
+                    Regex.IsMatch(certInfoLower, $@"\bl\s*=\s*[^,]*{Regex.Escape(org)}[^,]*", RegexOptions.IgnoreCase))    
                 {
                     isTrustedCert = true;
                     break;
