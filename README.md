@@ -47,7 +47,7 @@ Malicious APK-
 ## Requirements
 
 - .NET Framework 4.5+(downloads automatically)
-- Java Runtime Environment (you need to download from the Java site)
+- Java Runtime Environment and Java (you need to download from the Java site and you better restart the computer after downloading)
 
 ---
 ## Usage
