@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Linq;
 using System.Media;
@@ -10,6 +10,7 @@ using System.Windows.Forms;
 using System.Text;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace APKdevastate
 {
@@ -19,17 +20,28 @@ namespace APKdevastate
         SoundPlayer player = new SoundPlayer();
         bool isPlaying = false;
 
+        private Timer countdownTimer;
+        private Stopwatch analysisStopwatch;
+        private int elapsedSeconds = 0;
+
         private string selectedApkPath;
 
         public MainForm(string apkFilePath)
         {
             InitializeComponent();
+
+            countdownTimer = new Timer();
+            countdownTimer.Interval = 1000;
+            countdownTimer.Tick += CountdownTimer_Tick;
+            analysisStopwatch = new Stopwatch();
+
             //guna2ShadowPanel1.Visible = false;
             //textBoxmd5.Visible = false;
             //textBoxsha1.Visible = false;
             //textBoxsha256.Visible = false;
             //richtextboxprotectet.Visible = false;
             //mainRichTexbox.Visible = false;
+            richTextBoxanaliz.ReadOnly = true;
             analizinaltindakibutton.Visible = false;
             labelalertpayload.Visible = false;
             pictureBoxredandro.Visible = false;
@@ -60,7 +72,17 @@ namespace APKdevastate
             apknamelabel.Text = fileName;
         }
 
-        /*private readonly string[] tehlukelipermissionlar = new string[]
+        private void CountdownTimer_Tick(object sender, EventArgs e)
+        {
+            elapsedSeconds++;
+
+            int minutes = elapsedSeconds / 60;
+            int seconds = elapsedSeconds % 60;
+            richTextBoxanaliz.Text = $"{minutes:D2}:{seconds:D2}";
+        }
+
+
+        /* private readonly string[] tehlukelipermissionlar = new string[]
 {
     "android.permission.READ_SMS",
     "android.permission.SEND_SMS",
@@ -152,6 +174,11 @@ namespace APKdevastate
                 MessageBox.Show("Error");
                 return;
             }
+            
+            elapsedSeconds = 0;
+            richTextBoxanaliz.Text = "null:null";
+            countdownTimer.Start();
+            analysisStopwatch.Start();
 
             textboxalert.Text = "Waiting...";
             allprosessbar.Value = 0;
@@ -191,9 +218,9 @@ namespace APKdevastate
                         richtextboxapktoolyml.Text = manifestContent;
                     }));
                 }
-
+                                                               
                 string[] ratadlari = new string[] { 
-                    "spynote",
+                    "spynote",                  
                     "spymax",
                     "craxsrat",
                     "cellikrat",
@@ -212,8 +239,11 @@ namespace APKdevastate
                 Invoke((MethodInvoker)(() => richTextBoxlog.AppendText("Looking for RAT.")));
                 textboxalert.Clear();
                 textboxalert.Text = "scanning for RAT. may take a long time please wait";
+                
+                
                 bool ratFound = false;
                 string foundRatName = "";
+
 
                 var allFiles = Directory.GetFiles(tempPath, "*.*", SearchOption.AllDirectories);
                 foreach (var file in allFiles)
@@ -225,6 +255,47 @@ namespace APKdevastate
                     try
                     {
                         string content = File.ReadAllText(file).ToLower();
+
+                        //CraxsRati dedect etmek ucun
+                        if (fileName.Equals("accessdiecrip", StringComparison.OrdinalIgnoreCase) && content.Contains("spymax"))
+                        {
+                            ratFound = true;
+                            foundRatName = "craxsrat";
+                            break;
+                        }
+
+                        //Spynote version 5i dedect etmek ucun
+                        if (content.Contains("camera_managerfxf0x4x4x0fxf"))
+                        {
+                            ratFound = true;
+                            foundRatName = "spynote";
+                            break;
+                        }
+
+                        //Spynote version 6.4u dedect etmek ucun
+                        if (content.Contains("spy_note"))
+                        {
+                            ratFound = true;
+                            foundRatName = "spynote";
+                            break;
+                        }
+
+                        //G-700 dedect etmek ucun
+                        //if (content.Contains("leader"))
+                        //{
+                        //    ratFound = true;
+                        //    foundRatName = "G-700";
+                        //    break;
+                        //}
+
+                        //Cellikrati dedect etmek ucun
+                        //if (content.Contains("ClientHost"))
+                        //{
+                        //    ratFound = true;
+                        //    foundRatName = "CellikRat";
+                        //    break;
+                        //}
+
                         foreach (var keyword in ratadlari)
                         {
                             if (content.Contains(keyword))
@@ -372,6 +443,15 @@ namespace APKdevastate
 
                 allprosessbar.Value = 0;
             });
+            countdownTimer.Stop();
+            analysisStopwatch.Stop();
+
+            double totalSeconds = analysisStopwatch.Elapsed.TotalSeconds;
+            int minutes = (int)totalSeconds / 60;
+            int seconds = (int)totalSeconds % 60;
+            richTextBoxanaliz.Text = $"Analysis completed in: {minutes:D2}:{seconds:D2} | 9 main operations were completed.";
+
+            analysisStopwatch.Reset();
         }
 
         private string AnalyzeApk(string[] permissions, string certInfo, bool isProtected, bool ratFound, int permissionCount)
@@ -517,8 +597,8 @@ namespace APKdevastate
             {
                 if (Regex.IsMatch(certInfoLower, $@"\bo\s*=\s*[^,]*{Regex.Escape(org)}[^,]*", RegexOptions.IgnoreCase) ||    
                     Regex.IsMatch(certInfoLower, $@"\bou\s*=\s*[^,]*{Regex.Escape(org)}[^,]*", RegexOptions.IgnoreCase) ||   
-                    Regex.IsMatch(certInfoLower, $@"\bcn\s*=\s*[^,]*{Regex.Escape(org)}[^,]*", RegexOptions.IgnoreCase) ||   
-                    Regex.IsMatch(certInfoLower, $@"\bl\s*=\s*[^,]*{Regex.Escape(org)}[^,]*", RegexOptions.IgnoreCase))    
+                    Regex.IsMatch(certInfoLower, $@"\bcn\s*=\s*[^,]*{Regex.Escape(org)}[^,]*", RegexOptions.IgnoreCase) ||  
+                    Regex.IsMatch(certInfoLower, $@"\bl\s*=\s*[^,]*{Regex.Escape(org)}[^,]*", RegexOptions.IgnoreCase))
                 {
                     isTrustedCert = true;
                     break;
@@ -582,18 +662,21 @@ namespace APKdevastate
 
                 return "APKdevastate says: CLEAN (No malicious intent was matched with the algorithm)";
         }
+
         private void newapkButton_Click(object sender, EventArgs e)
         {
             using (OpenFileDialog openFileDialog = new OpenFileDialog())
             {
                 openFileDialog.Filter = "APK Files (*.apk)|*.apk";
                 openFileDialog.Title = "Select a new APK file";
+                
 
                 if (openFileDialog.ShowDialog() == DialogResult.OK)
                 {
                     selectedApkPath = openFileDialog.FileName;
                     string fileName = Path.GetFileName(selectedApkPath);
                     apknamelabel.Text = fileName;
+                    labelalertpayload.Visible = false;
 
                     analizbutton.Visible = true;
                     analizinaltindakibutton.Visible = false;
@@ -612,6 +695,7 @@ namespace APKdevastate
                     richtextboxprotectet.Clear();
                     richtextboxcert.Clear();
                     mainRichTexbox.Clear();
+                    richTextBoxanaliz.Clear();
                 }
             }
         }
@@ -651,5 +735,22 @@ namespace APKdevastate
                 isPlaying = false;
             }
         }
+        protected override void OnFormClosed(FormClosedEventArgs e)
+        {
+            if (countdownTimer != null)
+            {
+                countdownTimer.Stop();
+                countdownTimer.Dispose();
+            }
+
+            if (analysisStopwatch != null)
+            {
+                analysisStopwatch.Stop();
+            }
+
+            base.OnFormClosed(e);
+        }
+
     }
 }
+
