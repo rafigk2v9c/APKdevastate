@@ -1,4 +1,4 @@
-﻿namespace APKdevastate
+namespace APKdevastate
 {
     partial class MainForm
     {
@@ -30,6 +30,7 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.mainpanel = new System.Windows.Forms.Panel();
+            this.analizinaltindakibutton = new Guna.UI2.WinForms.Guna2Button();
             this.richTextBoxlog = new System.Windows.Forms.RichTextBox();
             this.richtextboxapksays = new System.Windows.Forms.RichTextBox();
             this.guna2Buttonabout = new Guna.UI2.WinForms.Guna2Button();
@@ -61,7 +62,7 @@
             this.sdkverisonlabel = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
             this.analizbutton = new Guna.UI2.WinForms.Guna2Button();
-            this.analizinaltindakibutton = new Guna.UI2.WinForms.Guna2Button();
+            this.richTextBoxanaliz = new System.Windows.Forms.RichTextBox();
             this.mainpanel.SuspendLayout();
             this.guna2ShadowPanel2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
@@ -73,6 +74,7 @@
             // mainpanel
             // 
             this.mainpanel.BackColor = System.Drawing.Color.Gainsboro;
+            this.mainpanel.Controls.Add(this.richTextBoxanaliz);
             this.mainpanel.Controls.Add(this.analizinaltindakibutton);
             this.mainpanel.Controls.Add(this.richTextBoxlog);
             this.mainpanel.Controls.Add(this.richtextboxapksays);
@@ -97,6 +99,26 @@
             this.mainpanel.Size = new System.Drawing.Size(843, 459);
             this.mainpanel.TabIndex = 3;
             // 
+            // analizinaltindakibutton
+            // 
+            this.analizinaltindakibutton.Animated = true;
+            this.analizinaltindakibutton.BackColor = System.Drawing.Color.DimGray;
+            this.analizinaltindakibutton.BorderRadius = 5;
+            this.analizinaltindakibutton.BorderThickness = 1;
+            this.analizinaltindakibutton.Cursor = System.Windows.Forms.Cursors.No;
+            this.analizinaltindakibutton.DisabledState.BorderColor = System.Drawing.Color.DarkGray;
+            this.analizinaltindakibutton.DisabledState.CustomBorderColor = System.Drawing.Color.DarkGray;
+            this.analizinaltindakibutton.DisabledState.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(169)))), ((int)(((byte)(169)))), ((int)(((byte)(169)))));
+            this.analizinaltindakibutton.DisabledState.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(141)))), ((int)(((byte)(141)))), ((int)(((byte)(141)))));
+            this.analizinaltindakibutton.FillColor = System.Drawing.Color.DarkGray;
+            this.analizinaltindakibutton.Font = new System.Drawing.Font("Segoe UI", 9.818182F);
+            this.analizinaltindakibutton.ForeColor = System.Drawing.Color.Black;
+            this.analizinaltindakibutton.Location = new System.Drawing.Point(3, 121);
+            this.analizinaltindakibutton.Name = "analizinaltindakibutton";
+            this.analizinaltindakibutton.Size = new System.Drawing.Size(120, 36);
+            this.analizinaltindakibutton.TabIndex = 25;
+            this.analizinaltindakibutton.Text = "Run!";
+            // 
             // richTextBoxlog
             // 
             this.richTextBoxlog.BackColor = System.Drawing.SystemColors.InfoText;
@@ -113,7 +135,7 @@
             this.richtextboxapksays.Cursor = System.Windows.Forms.Cursors.Arrow;
             this.richtextboxapksays.Location = new System.Drawing.Point(129, 225);
             this.richtextboxapksays.Name = "richtextboxapksays";
-            this.richtextboxapksays.Size = new System.Drawing.Size(343, 89);
+            this.richtextboxapksays.Size = new System.Drawing.Size(343, 58);
             this.richtextboxapksays.TabIndex = 23;
             this.richtextboxapksays.Text = "APKdevastate says: null";
             // 
@@ -159,15 +181,21 @@
             // 
             // richtextboxapktoolyml
             // 
+            this.richtextboxapktoolyml.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.richtextboxapktoolyml.Cursor = System.Windows.Forms.Cursors.Arrow;
-            this.richtextboxapktoolyml.Location = new System.Drawing.Point(3, 320);
+            this.richtextboxapktoolyml.Location = new System.Drawing.Point(0, 320);
             this.richtextboxapktoolyml.Name = "richtextboxapktoolyml";
-            this.richtextboxapktoolyml.Size = new System.Drawing.Size(837, 115);
+            this.richtextboxapktoolyml.Size = new System.Drawing.Size(840, 115);
             this.richtextboxapktoolyml.TabIndex = 20;
             this.richtextboxapktoolyml.Text = "<?xml version=\"null\" encoding=\"null\"?>";
             // 
             // allprosessbar
             // 
+            this.allprosessbar.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.allprosessbar.Location = new System.Drawing.Point(0, 436);
             this.allprosessbar.Name = "allprosessbar";
             this.allprosessbar.Size = new System.Drawing.Size(843, 23);
@@ -184,6 +212,8 @@
             // 
             // richtextboxcert
             // 
+            this.richtextboxcert.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.richtextboxcert.Cursor = System.Windows.Forms.Cursors.Arrow;
             this.richtextboxcert.Location = new System.Drawing.Point(478, 199);
             this.richtextboxcert.Name = "richtextboxcert";
@@ -237,6 +267,8 @@
             // 
             // richtextboxprotectet
             // 
+            this.richtextboxprotectet.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.richtextboxprotectet.Cursor = System.Windows.Forms.Cursors.Arrow;
             this.richtextboxprotectet.Location = new System.Drawing.Point(478, 121);
             this.richtextboxprotectet.Name = "richtextboxprotectet";
@@ -246,6 +278,8 @@
             // 
             // mainRichTexbox
             // 
+            this.mainRichTexbox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.mainRichTexbox.Cursor = System.Windows.Forms.Cursors.Arrow;
             this.mainRichTexbox.Location = new System.Drawing.Point(478, 3);
             this.mainRichTexbox.Name = "mainRichTexbox";
@@ -278,7 +312,7 @@
             // 
             // pictureBox1
             // 
-            this.pictureBox1.Cursor = System.Windows.Forms.Cursors.Arrow;
+            this.pictureBox1.Cursor = System.Windows.Forms.Cursors.Hand;
             this.pictureBox1.Image = global::APKdevastate.Properties.Resources.Untitled_design;
             this.pictureBox1.Location = new System.Drawing.Point(9, 9);
             this.pictureBox1.Name = "pictureBox1";
@@ -450,25 +484,16 @@
             this.analizbutton.Text = "Run!";
             this.analizbutton.Click += new System.EventHandler(this.analizbutton_Click);
             // 
-            // analizinaltindakibutton
+            // richTextBoxanaliz
             // 
-            this.analizinaltindakibutton.Animated = true;
-            this.analizinaltindakibutton.BackColor = System.Drawing.Color.DimGray;
-            this.analizinaltindakibutton.BorderRadius = 5;
-            this.analizinaltindakibutton.BorderThickness = 1;
-            this.analizinaltindakibutton.Cursor = System.Windows.Forms.Cursors.No;
-            this.analizinaltindakibutton.DisabledState.BorderColor = System.Drawing.Color.DarkGray;
-            this.analizinaltindakibutton.DisabledState.CustomBorderColor = System.Drawing.Color.DarkGray;
-            this.analizinaltindakibutton.DisabledState.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(169)))), ((int)(((byte)(169)))), ((int)(((byte)(169)))));
-            this.analizinaltindakibutton.DisabledState.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(141)))), ((int)(((byte)(141)))), ((int)(((byte)(141)))));
-            this.analizinaltindakibutton.FillColor = System.Drawing.Color.DarkGray;
-            this.analizinaltindakibutton.Font = new System.Drawing.Font("Segoe UI", 9.818182F);
-            this.analizinaltindakibutton.ForeColor = System.Drawing.Color.Black;
-            this.analizinaltindakibutton.Location = new System.Drawing.Point(3, 121);
-            this.analizinaltindakibutton.Name = "analizinaltindakibutton";
-            this.analizinaltindakibutton.Size = new System.Drawing.Size(120, 36);
-            this.analizinaltindakibutton.TabIndex = 25;
-            this.analizinaltindakibutton.Text = "Run!";
+            this.richTextBoxanaliz.BackColor = System.Drawing.SystemColors.InfoText;
+            this.richTextBoxanaliz.Cursor = System.Windows.Forms.Cursors.Arrow;
+            this.richTextBoxanaliz.ForeColor = System.Drawing.Color.Lime;
+            this.richTextBoxanaliz.Location = new System.Drawing.Point(129, 290);
+            this.richTextBoxanaliz.Name = "richTextBoxanaliz";
+            this.richTextBoxanaliz.Size = new System.Drawing.Size(343, 24);
+            this.richTextBoxanaliz.TabIndex = 26;
+            this.richTextBoxanaliz.Text = "null:null";
             // 
             // MainForm
             // 
@@ -477,7 +502,6 @@
             this.BackColor = System.Drawing.Color.White;
             this.ClientSize = new System.Drawing.Size(843, 459);
             this.Controls.Add(this.mainpanel);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Fixed3D;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
             this.Name = "MainForm";
@@ -530,5 +554,6 @@
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.RichTextBox richTextBoxlog;
         private Guna.UI2.WinForms.Guna2Button analizinaltindakibutton;
+        private System.Windows.Forms.RichTextBox richTextBoxanaliz;
     }
 }
