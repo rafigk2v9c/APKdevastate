@@ -30,6 +30,7 @@ namespace APKdevastate
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.mainpanel = new System.Windows.Forms.Panel();
+            this.richTextBoxanaliz = new System.Windows.Forms.RichTextBox();
             this.analizinaltindakibutton = new Guna.UI2.WinForms.Guna2Button();
             this.richTextBoxlog = new System.Windows.Forms.RichTextBox();
             this.richtextboxapksays = new System.Windows.Forms.RichTextBox();
@@ -62,7 +63,6 @@ namespace APKdevastate
             this.sdkverisonlabel = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
             this.analizbutton = new Guna.UI2.WinForms.Guna2Button();
-            this.richTextBoxanaliz = new System.Windows.Forms.RichTextBox();
             this.mainpanel.SuspendLayout();
             this.guna2ShadowPanel2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
@@ -98,6 +98,17 @@ namespace APKdevastate
             this.mainpanel.Name = "mainpanel";
             this.mainpanel.Size = new System.Drawing.Size(843, 459);
             this.mainpanel.TabIndex = 3;
+            // 
+            // richTextBoxanaliz
+            // 
+            this.richTextBoxanaliz.BackColor = System.Drawing.SystemColors.InfoText;
+            this.richTextBoxanaliz.Cursor = System.Windows.Forms.Cursors.Arrow;
+            this.richTextBoxanaliz.ForeColor = System.Drawing.Color.Lime;
+            this.richTextBoxanaliz.Location = new System.Drawing.Point(129, 290);
+            this.richTextBoxanaliz.Name = "richTextBoxanaliz";
+            this.richTextBoxanaliz.Size = new System.Drawing.Size(343, 24);
+            this.richTextBoxanaliz.TabIndex = 26;
+            this.richTextBoxanaliz.Text = "null:null";
             // 
             // analizinaltindakibutton
             // 
@@ -312,7 +323,7 @@ namespace APKdevastate
             // 
             // pictureBox1
             // 
-            this.pictureBox1.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.pictureBox1.Cursor = System.Windows.Forms.Cursors.Default;
             this.pictureBox1.Image = global::APKdevastate.Properties.Resources.Untitled_design;
             this.pictureBox1.Location = new System.Drawing.Point(9, 9);
             this.pictureBox1.Name = "pictureBox1";
@@ -320,7 +331,7 @@ namespace APKdevastate
             this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.pictureBox1.TabIndex = 7;
             this.pictureBox1.TabStop = false;
-            this.pictureBox1.Click += new System.EventHandler(this.pictureBox1_Click);
+           
             // 
             // guna2ShadowPanel1
             // 
@@ -483,17 +494,6 @@ namespace APKdevastate
             this.analizbutton.TabIndex = 6;
             this.analizbutton.Text = "Run!";
             this.analizbutton.Click += new System.EventHandler(this.analizbutton_Click);
-            // 
-            // richTextBoxanaliz
-            // 
-            this.richTextBoxanaliz.BackColor = System.Drawing.SystemColors.InfoText;
-            this.richTextBoxanaliz.Cursor = System.Windows.Forms.Cursors.Arrow;
-            this.richTextBoxanaliz.ForeColor = System.Drawing.Color.Lime;
-            this.richTextBoxanaliz.Location = new System.Drawing.Point(129, 290);
-            this.richTextBoxanaliz.Name = "richTextBoxanaliz";
-            this.richTextBoxanaliz.Size = new System.Drawing.Size(343, 24);
-            this.richTextBoxanaliz.TabIndex = 26;
-            this.richTextBoxanaliz.Text = "null:null";
             // 
             // MainForm
             // 
