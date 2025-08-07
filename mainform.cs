@@ -17,8 +17,8 @@ namespace APKdevastate
     public partial class MainForm : Form
     {
 
-        SoundPlayer player = new SoundPlayer();
-        bool isPlaying = false;
+        //SoundPlayer player = new SoundPlayer();
+        //bool isPlaying = false;
 
         private Timer countdownTimer;
         private Stopwatch analysisStopwatch;
@@ -58,7 +58,7 @@ namespace APKdevastate
             mainRichTexbox.ReadOnly = true;
             selectedApkPath = apkFilePath;
 
-            string mahniYolu = Path.Combine(Application.StartupPath, "resources", "music", "aphextwin.wav");
+            /*string mahniYolu = Path.Combine(Application.StartupPath, "resources", "music", "aphextwin.wav");
             if (File.Exists(mahniYolu))
             {
                 player = new SoundPlayer(mahniYolu);
@@ -67,6 +67,7 @@ namespace APKdevastate
             {
                 
             }
+            */
             string fileName = Path.GetFileName(apkFilePath);
 
             apknamelabel.Text = fileName;
@@ -228,7 +229,6 @@ namespace APKdevastate
                     "cypherrat",
                     "eaglespy",
                     "g-700rat",
-                    "enccn",
                     "bratarat",
                     "everspy",
                     "blackspy",
@@ -459,6 +459,8 @@ namespace APKdevastate
 
             Dictionary<string, string[]> trustedOrgsDict = new Dictionary<string, string[]>
     {
+
+                //ai sugessted
 {"apple", new string[] {"apple inc", "apple"}},
 {"amazon", new string[] {"amazon inc", "amazon.com", "amazon"}},
 {"netflix", new string[] {"netflix inc", "netflix"}},
@@ -542,6 +544,7 @@ namespace APKdevastate
             string[] unwantedCertKeywords = new string[] {
         "debug",
         "android",
+        "hack",
         "android@android.com",
         "test",
         "sample",
@@ -645,18 +648,23 @@ namespace APKdevastate
 
             if (dangerousPermissionCount > 3 && isUnwantedCert)
             {
-           
+
                 string detectedKeywords = string.Join(", ", unwantedCertKeywords.Where(k => certInfo.ToLower().Contains(k)));
+                richtextboxapksays.ForeColor = Color.Red;
                 return $"APKdevastate says: UNWANTED (Suspicious certification: {detectedKeywords} + dangerous permissions)";
             }
 
             if (dangerousPermissionCount > 3 && !isTrustedCert)
+
+
             {
+                richtextboxapksays.ForeColor = Color.Red;
                 return "APKdevastate says: MALICIOUS (No certification found and dangerous permissions. this could be a dangerous apk)";
             }
 
             if (isProtected && permissionCount > 10)
             {
+                richtextboxapksays.ForeColor = Color.Red;
                 return "APKdevastate says: SUSPICIOUS (This apk's content is very complicated and it is detected as encrypted and it has multiple permissions, it may be a suspicious apk.)";
             }
 
@@ -720,21 +728,22 @@ namespace APKdevastate
             aboutform.Show();
         }
 
-        private void pictureBox1_Click(object sender, EventArgs e)
-        {
-            if (player == null) return;
+        /*private void pictureBox1_Click(object sender, EventArgs e)
+         {
+             if (player == null) return;
 
-            if (!isPlaying)
-            {
-                player.PlayLooping();
-                isPlaying = true;
-            }
-            else
-            {
-                player.Stop();
-                isPlaying = false;
-            }
-        }
+             if (!isPlaying)
+             {
+                 player.PlayLooping();
+                 isPlaying = true;
+             }
+             else
+             {
+                 player.Stop();
+                 isPlaying = false;
+             }
+         }
+        */
         protected override void OnFormClosed(FormClosedEventArgs e)
         {
             if (countdownTimer != null)
