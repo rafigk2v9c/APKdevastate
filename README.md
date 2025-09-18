@@ -79,4 +79,4 @@ The application may be detected as infected by windows defender because it conta
 Download this relase:
 
 ```bash
-https://github.com/rafigk2v9c/APKdevastate/releases
+https://github.com/rafigk2v9c/APKdevastate/releases/tag/idontloveyou
