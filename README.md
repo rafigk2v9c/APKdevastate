@@ -59,10 +59,6 @@ Malicious APK-
 
 Example Usage-
 
-The first apk is the malicious one.
-
-The second one is the safe one.
-
 [Click here to Watch Demo Video](https://youtu.be/adsLWXGpstg?si=tcqQnxOfy9AtXuMz)
 
 
