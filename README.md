@@ -70,9 +70,9 @@ Example Usage-
 
 Please download the .rar file with the name of the application and then extract it from the .rar to a folder, remember that if the files inside the .rar file are not in a directory, the application will not work
 
-The application may be detected as infected by windows defender because it contains RAT names
+The application may be detected as infected by Anti-Virus because it contains RAT names
 
 Download this relase:
 
 ```bash
-https://github.com/rafigk2v9c/APKdevastate/releases/tag/idontloveyou
+https://github.com/rafigk2v9c/APKdevastate/releases/tag/APKdevastatev1.4
