@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -31,6 +32,50 @@ namespace APKdevastate
             this.AllowDrop = true;
             this.DragEnter += selectapkform_DragEnter;
             this.DragDrop += selectapkform_DragDrop;
+            this.Load += selectapkform_Load;
+        }
+
+        private void selectapkform_Load(object sender, EventArgs e)
+        {
+            if (!IsJavaInstalled())
+            {
+                MessageBox.Show(
+                    "Java is not installed on your system!\n\n" +
+                    "APKdevastate requires Java to analyze APK files.\n" +
+                    "Please install Java (JDK or JRE) and try again.\n\n",
+                 
+                    "Java Not Found",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error
+                );
+                Application.Exit();
+            }
+        }
+
+        private bool IsJavaInstalled()
+        {
+            try
+            {
+                ProcessStartInfo startInfo = new ProcessStartInfo
+                {
+                    FileName = "java",
+                    Arguments = "-version",
+                    RedirectStandardError = true,
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+
+                using (Process process = Process.Start(startInfo))
+                {
+                    process.WaitForExit();
+                    return process.ExitCode == 0;
+                }
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         private void surusdurmekpaneli_MouseDown(object sender, MouseEventArgs e)
