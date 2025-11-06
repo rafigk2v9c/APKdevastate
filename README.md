@@ -5,6 +5,8 @@
 ![Forks](https://img.shields.io/github/forks/rafigk2v9c/APKdevastate?style=social)
 ![Issues](https://img.shields.io/github/issues/rafigk2v9c/APKdevastate)
 
+[Official instagram account.](https://instagram.com/apkdevastate)
+
 <p align="center">
   <img src="https://github.com/rafigk2v9c/APKdevastate/blob/master/ss/fireandroid.gif?raw=true" alt="APKdevastate Banner" width="200"/>
 </p>
