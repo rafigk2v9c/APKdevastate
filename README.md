@@ -67,7 +67,6 @@ Example Usage-
 
 > ⚠️ **Disclaimer**: APKdevastate does not guarantee 100% accuracy in all detections or results. Use at your own discretion.
 
-> ⚠️ **Disclaimer**: APKdevastate has difficulty detecting malicious or non-malicious APK files that have been packed and obfuscated.
 ## 🌟 Support the Project
 
 **Love APKdevastate?** Give us a ⭐ on GitHub!
