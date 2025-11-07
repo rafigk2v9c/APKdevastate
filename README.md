@@ -63,7 +63,9 @@ Example Usage-
 
 [Click here to Watch Demo Video](https://youtu.be/adsLWXGpstg?si=tcqQnxOfy9AtXuMz)
 
+## 🌟 Support the Project
 
+**Love APKdevastate?** Give us a ⭐ on GitHub!
 
 > ⚠️ **Disclaimer**: APKdevastate does not guarantee 100% accuracy in all detections or results. Use at your own discretion.
 
@@ -72,10 +74,6 @@ Example Usage-
 Please download the .rar file with the name of the application and then extract it from the .rar to a folder, remember that if the files inside the .rar file are not in a directory, the application will not work
 
 The application may be detected as infected by Anti-Virus because it contains RAT names
-
-## 🌟 Support the Project
-
-**Love APKdevastate?** Give us a ⭐ on GitHub!
 
 Download latest version:
 
