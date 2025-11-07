@@ -68,6 +68,10 @@ Example Usage-
 > ⚠️ **Disclaimer**: APKdevastate does not guarantee 100% accuracy in all detections or results. Use at your own discretion.
 
 > ⚠️ **Disclaimer**: APKdevastate has difficulty detecting malicious or non-malicious APK files that have been packed and obfuscated.
+## 🌟 Support the Project
+
+**Love APKdevastate?** Give us a ⭐ on GitHub!
+
 ## 🛠️ Installation
 
 Please download the .rar file with the name of the application and then extract it from the .rar to a folder, remember that if the files inside the .rar file are not in a directory, the application will not work
