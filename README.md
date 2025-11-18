@@ -24,26 +24,8 @@ The tool helps identify potentially malicious applications by examining permissi
 -  **RAT Detection**: Scans for known Remote Access Trojan signatures  
 -  **Hash Generation**: Calculates MD5, SHA1, and SHA256 hashes for file verification  
 -  **Encryption Detection**: Identifies potentially obfuscated or encrypted code  
--  **Risk Assessment**: Provides an overall security evaluation of the analyzed APK  
-
----
-
-## Screenshots
-
-Payload APK-
-
-<img src="https://github.com/rafigk2v9c/APKdevastate/blob/master/ss/Screenshot_2.png?raw=true" alt="APKdevastate Screenshot" width="600"/>
-
-Normal APK-
-
-<img src="https://github.com/rafigk2v9c/APKdevastate/blob/master/ss/Screenshot_3.png?raw=true" alt="APKdevastate Screenshot" width="600"/>
-
-Malicious APK-
-
-<img src="https://github.com/rafigk2v9c/APKdevastate/blob/master/ss/Screenshot_4.png?raw=true" alt="APKdevastate Screenshot" width="600"/>
-
-
-
+-  **Risk Assessment**: Provides an overall security evaluation of the analyzed APK
+-  
 ---
 
 ## Requirements
