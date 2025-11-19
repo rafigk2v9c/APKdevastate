@@ -25,7 +25,7 @@ The tool helps identify potentially malicious applications by examining permissi
 -  **Hash Generation**: Calculates MD5, SHA1, and SHA256 hashes for file verification  
 -  **Encryption Detection**: Identifies potentially obfuscated or encrypted code  
 -  **Risk Assessment**: Provides an overall security evaluation of the analyzed APK
--  
+  
 ---
 
 ## Requirements
