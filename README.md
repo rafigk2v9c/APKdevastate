@@ -17,6 +17,14 @@ The tool helps identify potentially malicious applications by examining permissi
 
 ---
 
+# Sample view of the software
+
+## Payload Alert
+<img src="https://github.com/rafigk2v9c/APKdevastate/blob/master/ss/Screenshot_2.png" width="600" height="350" />
+
+## Malicious Alert
+<img src="https://github.com/rafigk2v9c/APKdevastate/blob/master/ss/Screenshot_3.png" width="600" height="350" />
+
 ## Features
 
 -  **Permission Analysis**: Lists and evaluates dangerous Android permissions  
