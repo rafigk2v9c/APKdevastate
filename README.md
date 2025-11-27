@@ -43,7 +43,7 @@ The tool helps identify potentially malicious applications by examining permissi
 ## Requirements
 
 - .NET Framework 4.5+(downloads automatically)
-- Java Runtime Environment (you need to download from the Java site and you better restart the computer after downloading)
+- Java Runtime Environment
 
 ---
 ## Usage
