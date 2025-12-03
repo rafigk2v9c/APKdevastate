@@ -5,7 +5,7 @@
 ![Forks](https://img.shields.io/github/forks/rafigk2v9c/APKdevastate?style=social)
 ![Issues](https://img.shields.io/github/issues/rafigk2v9c/APKdevastate)
 
-[Read More.](https://rafigk2v9c.github.io/apkdevastaten)
+[Read More.](https://rafigk2v9c.github.io/posts/apkdevastaten)
 
 <p align="center">
   <img src="https://github.com/rafigk2v9c/APKdevastate/blob/master/ss/fireandroid.gif?raw=true" alt="APKdevastate Banner" width="200"/>
