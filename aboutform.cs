@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -33,6 +33,16 @@ namespace APKdevastate
             ProcessStartInfo psi = new ProcessStartInfo
             {
                 FileName = "https://github.com/rafigk2v9c",
+                UseShellExecute = true
+            };
+            Process.Start(psi);
+        }
+
+        private void pictureBox4_Click(object sender, EventArgs e)
+        {
+            ProcessStartInfo psi = new ProcessStartInfo
+            {
+                FileName = "https://rafigk2v9c.github.io",
                 UseShellExecute = true
             };
             Process.Start(psi);
