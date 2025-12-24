@@ -62,13 +62,13 @@ Example Usage-
 **Love APKdevastate?** Give us a ⭐ on GitHub!
 
 
-## 🛠️ Installation
+## Installation
 
 Please download the .rar file with the name of the application and then extract it from the .rar to a folder, remember that if the files inside the .rar file are not in a directory, the application will not work
 
 The application may be detected as infected by Anti-Virus because it contains RAT names
 
-> ⚠️ **Disclaimer**: APKdevastate does not guarantee 100% accuracy in all detections or results. Use at your own discretion.
+> **Disclaimer**: APKdevastate does not guarantee 100% accuracy in all detections or results. Use at your own discretion.
 
 Download latest version:
 
