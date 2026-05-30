@@ -1,0 +1,436 @@
+{
+    "trustedOrganizations": {
+        "tiktok": [
+            "bytedance ltd",
+            "tiktok"
+        ],
+        "whatsapp": [
+            "whatsapp inc",
+            "whatsapp llc",
+            "whatsapp"
+        ],
+        "instagram": [
+            "meta platforms, inc.",
+            "instagram"
+        ],
+        "telegram": [
+            "telegram fz-llc",
+            "telegram messenger llc",
+            "telegram"
+        ],
+        "viber": [
+            "rakuten viber",
+            "viber"
+        ],
+        "snapchat": [
+            "snap inc",
+            "snapchat"
+        ],
+        "facebook": [
+            "meta platforms, inc.",
+            "facebook"
+        ],
+        "apple": [
+            "apple inc",
+            "apple"
+        ],
+        "amazon": [
+            "amazon inc",
+            "amazon.com",
+            "amazon"
+        ],
+        "netflix": [
+            "netflix inc",
+            "netflix"
+        ],
+        "discord": [
+            "discord inc",
+            "discord"
+        ],
+        "activision": [
+            "activision blizzard",
+            "activision"
+        ],
+        "blizzard": [
+            "blizzard entertainment",
+            "blizzard"
+        ],
+        "zoom": [
+            "zoom video communications",
+            "zoom"
+        ],
+        "adobe": [
+            "adobe inc",
+            "adobe"
+        ],
+        "oracle": [
+            "oracle corporation",
+            "oracle"
+        ],
+        "samsung": [
+            "samsung electronics",
+            "samsung"
+        ],
+        "nintendo": [
+            "nintendo co ltd",
+            "nintendo"
+        ],
+        "sony": [
+            "sony group corporation",
+            "sony"
+        ],
+        "uber": [
+            "uber technologies inc",
+            "uber"
+        ],
+        "airbnb": [
+            "airbnb inc",
+            "airbnb"
+        ],
+        "paypal": [
+            "paypal holdings inc",
+            "paypal"
+        ],
+        "dropbox": [
+            "dropbox inc",
+            "dropbox"
+        ],
+        "pinterest": [
+            "pinterest inc",
+            "pinterest"
+        ],
+        "reddit": [
+            "reddit inc",
+            "reddit"
+        ],
+        "twitch": [
+            "twitch interactive inc",
+            "twitch"
+        ],
+        "baidu": [
+            "baidu inc",
+            "baidu"
+        ],
+        "alibaba": [
+            "alibaba group",
+            "alibaba"
+        ],
+        "huawei": [
+            "huawei technologies",
+            "huawei"
+        ],
+        "nvidia": [
+            "nvidia corporation",
+            "nvidia"
+        ],
+        "intel": [
+            "intel corporation",
+            "intel"
+        ],
+        "temu": [
+            "pdd holdings inc.",
+            "temu"
+        ],
+        "capcut": [
+            "bytedance ltd",
+            "capcut"
+        ],
+        "threads": [
+            "meta platforms, inc.",
+            "threads"
+        ],
+        "spotify": [
+            "spotify ab",
+            "spotify"
+        ],
+        "shein": [
+            "shein group ltd",
+            "shein"
+        ],
+        "messenger": [
+            "meta platforms, inc.",
+            "messenger"
+        ],
+        "whatsapp business": [
+            "meta platforms, inc.",
+            "whatsapp business"
+        ],
+        "roblox": [
+            "roblox corporation",
+            "roblox"
+        ],
+        "google": [
+            "google inc",
+            "google llc",
+            "google"
+        ],
+        "meta": [
+            "meta platforms",
+            "facebook",
+            "instagram",
+            "meta"
+        ],
+        "mojang": [
+            "mojang ab",
+            "mojang"
+        ],
+        "microsoft": [
+            "microsoft corporation",
+            "microsoft"
+        ],
+        "twitter": [
+            "twitter inc",
+            "twitter",
+            "x corp"
+        ],
+        "x": [
+            "x corp",
+            "twitter"
+        ],
+        "linkedin": [
+            "linkedin corporation",
+            "linkedin"
+        ],
+        "youtube": [
+            "youtube llc",
+            "youtube"
+        ],
+        "duolingo": [
+            "duolingo inc",
+            "duolingo"
+        ],
+        "shazam": [
+            "shazam entertainment ltd",
+            "shazam"
+        ],
+        "line": [
+            "line corporation",
+            "line"
+        ],
+        "bigo live": [
+            "bigo technology",
+            "bigo live"
+        ],
+        "imo": [
+            "imo.im",
+            "imo"
+        ],
+        "zalo": [
+            "vng corporation",
+            "zalo"
+        ],
+        "truecaller": [
+            "true software scandinavia ab",
+            "truecaller"
+        ],
+        "clubhouse": [
+            "alpha exploration co",
+            "clubhouse"
+        ],
+        "yandex": [
+            "yandex nv",
+            "yandex"
+        ],
+        "booking": [
+            "booking holdings",
+            "booking.com",
+            "booking"
+        ],
+        "yubo": [
+            "twelve app",
+            "yubo"
+        ],
+        "candy crush": [
+            "king",
+            "candy crush"
+        ],
+        "hbo max": [
+            "warner bros. discovery",
+            "hbo max"
+        ],
+        "veepee": [
+            "veepee",
+            "vente-privee"
+        ],
+        "glovo": [
+            "glovoapp23",
+            "glovo"
+        ],
+        "bolt": [
+            "bolt technology ou",
+            "bolt"
+        ],
+        "tinder": [
+            "match group",
+            "tinder"
+        ],
+        "uptodown": [
+            "uptodown technologies sl",
+            "uptodown"
+        ],
+        "bumble": [
+            "bumble inc",
+            "bumble"
+        ],
+        "okcupid": [
+            "match group",
+            "okcupid"
+        ],
+        "zoosk": [
+            "spark networks",
+            "zoosk"
+        ],
+        "hily": [
+            "hily corp",
+            "hily"
+        ],
+        "duo mobile": [
+            "duo security",
+            "duo mobile"
+        ],
+        "notion": [
+            "notion labs inc",
+            "notion"
+        ],
+        "medium": [
+            "medium corporation",
+            "medium"
+        ],
+        "be real": [
+            "be real",
+            "bereal"
+        ],
+        "photomath": [
+            "photomath inc",
+            "photomath"
+        ],
+        "musixmatch": [
+            "musixmatch spa",
+            "musixmatch"
+        ],
+        "flo": [
+            "flo health inc",
+            "flo"
+        ],
+        "fitbit": [
+            "fitbit inc",
+            "fitbit"
+        ],
+        "calm": [
+            "calm.com inc",
+            "calm"
+        ],
+        "mozilla": [
+            "mozilla",
+            "mozilla foundation",
+            "firefox"
+        ],
+        "signal": [
+            "signal foundation",
+            "signal messenger",
+            "signal"
+        ],
+        "tencent": [
+            "tencent",
+            "wechat"
+        ],
+        "opera": [
+            "opera software",
+            "opera"
+        ],
+        "brave": [
+            "brave software",
+            "brave"
+        ],
+        "supercell": [
+            "supercell",
+            "clash of clans",
+            "clash royale",
+            "brawl stars"
+        ],
+        "rovio": [
+            "rovio entertainment",
+            "angry birds"
+        ],
+        "teamviewer": [
+            "teamviewer"
+        ],
+        "anydesk": [
+            "anydesk software",
+            "anydesk"
+        ],
+        "slack": [
+            "slack technologies",
+            "slack"
+        ],
+        "skype": [
+            "skype"
+        ],
+        "wps office": [
+            "kingsoft",
+            "wps office"
+        ],
+        "rar": [
+            "rarlab",
+            "rar"
+        ],
+        "electronic arts": [
+            "electronic arts",
+            "ea mobile"
+        ],
+        "ubisoft": [
+            "ubisoft"
+        ],
+        "gameloft": [
+            "gameloft"
+        ],
+        "miniclip": [
+            "miniclip"
+        ],
+        "zynga": [
+            "zynga"
+        ],
+        "voodoo": [
+            "voodoo"
+        ],
+        "ketchapp": [
+            "ketchapp"
+        ],
+        "outfit7": [
+            "outfit7",
+            "talking tom"
+        ],
+        "picsart": [
+            "picsart"
+        ],
+        "inshot": [
+            "inshot"
+        ],
+        "kaspersky": [
+            "kaspersky lab",
+            "kaspersky"
+        ],
+        "eset": [
+            "eset"
+        ],
+        "avast": [
+            "avast software",
+            "avast"
+        ],
+        "avg": [
+            "avg mobile",
+            "avg"
+        ],
+        "bitdefender": [
+            "bitdefender"
+        ],
+        "mcafee": [
+            "mcafee"
+        ],
+        "proton": [
+            "proton ag",
+            "proton mail",
+            "proton vpn"
+        ]
+    }
+}
