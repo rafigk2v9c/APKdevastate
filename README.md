@@ -77,10 +77,6 @@ Download latest version:
 https://github.com/rafosw/APKdevastate/releases/tag/APKdevastatev1.6
 ```
 
-<p align="center">
-  <img src="https://github.com/rafosw/APKdevastate/blob/master/ss/fireandroid.gif?raw=true" alt="APKdevastate Banner" width="200"/>
-</p>
-
 [Read More.](https://rafosw.github.io/posts/apkdevastaten)
 
 
