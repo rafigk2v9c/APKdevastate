@@ -7,7 +7,7 @@
 
 
 <p align="center">
-  <img src="https://github.com/rafosw/APKdevastate/blob/master/ss/fireandroid.gif?raw=true" alt="APKdevastate Banner" width="200"/>
+  <img src="https://github.com/rafosw/APKdevastate/blob/master/ss/apkdevastate.png?raw=true" alt="APKdevastate Banner" width="200"/>
 </p>
 
 **APKdevastate** is a powerful Windows application designed to analyze Android APK files for security risks, malware signatures, and suspicious behaviors. The tool helps identify potentially malicious applications by examining permissions, certificate information, and known Remote Access Trojan (RAT) signatures.
@@ -76,6 +76,10 @@ Download latest version:
 ```bash
 https://github.com/rafosw/APKdevastate/releases/tag/APKdevastatev1.6
 ```
+
+<p align="center">
+  <img src="https://github.com/rafosw/APKdevastate/blob/master/ss/fireandroid.gif?raw=true" alt="APKdevastate Banner" width="200"/>
+</p>
 
 [Read More.](https://rafosw.github.io/posts/apkdevastaten)
 
