@@ -14,7 +14,7 @@ using System.Diagnostics;
 using System.Net;
 
 //The concept and idea for the APKdevastate application belong entirely to Rafig Zarbaliyev!
-//If there is an error in the app or if you have any suggestions for additional features, please message me on Instagram(@rafok2v9c)
+//If there is an error in the app or if you have any suggestions for additional features, please message me on Instagram(@rafohub)
 //Read this guide to learn how to use APKdevastate https://rafosw.github.io/posts/apkdevastaten/
 
 namespace APKdevastate
