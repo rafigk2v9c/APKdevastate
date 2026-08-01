@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Windows.Forms;
 
 namespace APKdevastate
@@ -11,18 +11,21 @@ namespace APKdevastate
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
+            string apkPath = null;
+
             using (selectapkform selectForm = new selectapkform())
             {
                 DialogResult result = selectForm.ShowDialog();
 
                 if (result == DialogResult.OK && !string.IsNullOrEmpty(selectForm.SelectedApkPath))
                 {
-                    Application.Run(new MainForm(selectForm.SelectedApkPath));
+                    apkPath = selectForm.SelectedApkPath;
                 }
-                else
-                {
-                    MessageBox.Show("apk ERROR", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                }
+            }
+
+            if (!string.IsNullOrEmpty(apkPath))
+            {
+                Application.Run(new MainForm(apkPath));
             }
         }
     }
