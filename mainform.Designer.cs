@@ -30,6 +30,7 @@ namespace APKdevastate
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.mainpanel = new System.Windows.Forms.Panel();
+            this.dynamicloaderbutton = new System.Windows.Forms.Button();
             this.button1 = new System.Windows.Forms.Button();
             this.richTextBoxanaliz = new System.Windows.Forms.RichTextBox();
             this.analizinaltindakibutton = new Guna.UI2.WinForms.Guna2Button();
@@ -75,6 +76,7 @@ namespace APKdevastate
             // mainpanel
             // 
             this.mainpanel.BackColor = System.Drawing.Color.Gainsboro;
+            this.mainpanel.Controls.Add(this.dynamicloaderbutton);
             this.mainpanel.Controls.Add(this.button1);
             this.mainpanel.Controls.Add(this.richTextBoxanaliz);
             this.mainpanel.Controls.Add(this.analizinaltindakibutton);
@@ -101,6 +103,17 @@ namespace APKdevastate
             this.mainpanel.Name = "mainpanel";
             this.mainpanel.Size = new System.Drawing.Size(1124, 565);
             this.mainpanel.TabIndex = 3;
+            // 
+            // dynamicloaderbutton
+            // 
+            this.dynamicloaderbutton.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.dynamicloaderbutton.Location = new System.Drawing.Point(727, 206);
+            this.dynamicloaderbutton.Name = "dynamicloaderbutton";
+            this.dynamicloaderbutton.Size = new System.Drawing.Size(75, 23);
+            this.dynamicloaderbutton.TabIndex = 28;
+            this.dynamicloaderbutton.Text = "Loader";
+            this.dynamicloaderbutton.UseVisualStyleBackColor = true;
+            this.dynamicloaderbutton.Click += new System.EventHandler(this.dynamicloaderbutton_Click);
             // 
             // button1
             // 
@@ -603,5 +616,6 @@ namespace APKdevastate
         private Guna.UI2.WinForms.Guna2Button analizinaltindakibutton;
         private System.Windows.Forms.RichTextBox richTextBoxanaliz;
         private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Button dynamicloaderbutton;
     }
 }
