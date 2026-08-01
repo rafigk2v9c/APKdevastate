@@ -14,8 +14,8 @@ using System.Diagnostics;
 using System.Net;
 
 //The concept and idea for the APKdevastate application belong entirely to Rafig Zarbaliyev!
-//If there is an error in the app or if you have any suggestions for additional features, please PR
-//Read this guide to learn how to use APKdevastate https://trojandb.org/blog/post.php?slug=apkdevastaten-apk-payload-analyzer
+//If there is an error in the app or if you have any suggestions for additional features, please message me on Instagram(@rafok2v9c)
+//Read this guide to learn how to use APKdevastate https://rafosw.github.io/posts/apkdevastaten/
 
 namespace APKdevastate
 {
@@ -33,6 +33,20 @@ namespace APKdevastate
         private string nativeLibResult = "";
         private string dynamicLoadersResult = "";
         private string jadxAnalysisResult = "";
+        private string protectionSummaryText = "";
+        private string activeProtectionView = "summary";
+        private string certificateDn = "";
+        private bool signatureVerified = false;
+        private bool encryptionEvidenceFound = false;
+        private bool analysisRunning = false;
+        private Color analysisResultColor = Color.Black;
+        private guideform guideFormInstance = null;
+        private aboutform aboutFormInstance = null;
+
+        private const long maxScanFileSize = 64L * 1024 * 1024;
+        private const int processTimeoutMs = 600000;
+        private static readonly object trustedOrgsLock = new object();
+        private static readonly Encoding scanEncoding = Encoding.GetEncoding(28591);
 
         private static Dictionary<string, string[]> trustedOrgsCache = null;
 
@@ -111,20 +125,235 @@ namespace APKdevastate
     "android.permission.CALL_PHONE"
 };
         */
+        private sealed class ProcessResult
+        {
+            public string StandardOutput = "";
+            public string StandardError = "";
+            public int ExitCode = -1;
+            public bool TimedOut = false;
+            public bool Started = false;
+
+            public string Combined
+            {
+                get { return StandardOutput + Environment.NewLine + StandardError; }
+            }
+        }
+
+        private void SafeInvoke(Action action)
+        {
+            if (action == null)
+                return;
+
+            try
+            {
+                if (IsDisposed || Disposing || !IsHandleCreated)
+                    return;
+
+                if (InvokeRequired)
+                    Invoke(action);
+                else
+                    action();
+            }
+            catch (ObjectDisposedException) { }
+            catch (InvalidOperationException) { }
+        }
+
+        private void SetLog(string message)
+        {
+            SafeInvoke(() =>
+            {
+                richTextBoxlog.Clear();
+                richTextBoxlog.AppendText(message);
+            });
+        }
+
+        private void SetProgress(int value)
+        {
+            SafeInvoke(() =>
+            {
+                if (value < allprosessbar.Minimum) value = allprosessbar.Minimum;
+                if (value > allprosessbar.Maximum) value = allprosessbar.Maximum;
+                allprosessbar.Value = value;
+            });
+        }
+
+        private static bool ContainsIgnoreCase(string source, string value)
+        {
+            if (string.IsNullOrEmpty(source) || string.IsNullOrEmpty(value))
+                return false;
+
+            return source.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        private static bool ContainsToken(string source, string token)
+        {
+            if (string.IsNullOrEmpty(source) || string.IsNullOrEmpty(token))
+                return false;
+
+            string pattern = Regex.Escape(token);
+
+            if (IsTokenChar(token[0]))
+                pattern = @"(?<![A-Za-z0-9_])" + pattern;
+
+            if (IsTokenChar(token[token.Length - 1]))
+                pattern = pattern + @"(?![A-Za-z0-9_])";
+
+            try
+            {
+                return Regex.IsMatch(source, pattern);
+            }
+            catch (ArgumentException)
+            {
+                return source.IndexOf(token, StringComparison.Ordinal) >= 0;
+            }
+        }
+
+        private static bool IsTokenChar(char c)
+        {
+            return char.IsLetterOrDigit(c) || c == '_';
+        }
+
+        private static string ReadFileForScan(string path)
+        {
+            try
+            {
+                FileInfo info = new FileInfo(path);
+                if (!info.Exists || info.Length == 0 || info.Length > maxScanFileSize)
+                    return null;
+
+                return scanEncoding.GetString(File.ReadAllBytes(path));
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private static List<string> GetDnFieldValues(string dn, string[] fieldNames)
+        {
+            List<string> values = new List<string>();
+
+            if (string.IsNullOrEmpty(dn) || fieldNames == null)
+                return values;
+
+            const string anyField = @"(?:cn|ou|o|l|st|c|dc|uid|street|serialnumber|emailaddress)";
+
+            foreach (var field in fieldNames)
+            {
+                string pattern = $@"(?:^|,)\s*{Regex.Escape(field)}\s*=\s*(.*?)(?=(?<!\\),\s*{anyField}\s*=|$)";
+
+                foreach (Match m in Regex.Matches(dn, pattern, RegexOptions.IgnoreCase))
+                {
+                    string value = m.Groups[1].Value.Replace("\\,", ",").Trim();
+                    if (value.Length > 0)
+                        values.Add(value);
+                }
+            }
+
+            return values;
+        }
+
+        private static bool DnValuesContainToken(List<string> values, string token)
+        {
+            if (values == null || values.Count == 0 || string.IsNullOrEmpty(token))
+                return false;
+
+            string pattern = $@"(^|[^A-Za-z0-9]){Regex.Escape(token)}([^A-Za-z0-9]|$)";
+
+            foreach (var value in values)
+            {
+                if (Regex.IsMatch(value, pattern, RegexOptions.IgnoreCase))
+                    return true;
+            }
+
+            return false;
+        }
+
+        private ProcessResult RunProcessDetailed(string exePath, string arguments, string workingDirectory)
+        {
+            var result = new ProcessResult();
+            var stdout = new StringBuilder();
+            var stderr = new StringBuilder();
+
+            try
+            {
+                using (var process = new System.Diagnostics.Process())
+                using (var outputDone = new System.Threading.AutoResetEvent(false))
+                using (var errorDone = new System.Threading.AutoResetEvent(false))
+                {
+                    process.StartInfo.FileName = exePath;
+                    process.StartInfo.Arguments = arguments;
+                    process.StartInfo.UseShellExecute = false;
+                    process.StartInfo.RedirectStandardOutput = true;
+                    process.StartInfo.RedirectStandardError = true;
+                    process.StartInfo.CreateNoWindow = true;
+
+                    if (!string.IsNullOrEmpty(workingDirectory) && Directory.Exists(workingDirectory))
+                        process.StartInfo.WorkingDirectory = workingDirectory;
+
+                    process.OutputDataReceived += (s, e) =>
+                    {
+                        if (e.Data == null)
+                        {
+                            try { outputDone.Set(); } catch { }
+                        }
+                        else
+                        {
+                            lock (stdout) stdout.AppendLine(e.Data);
+                        }
+                    };
+
+                    process.ErrorDataReceived += (s, e) =>
+                    {
+                        if (e.Data == null)
+                        {
+                            try { errorDone.Set(); } catch { }
+                        }
+                        else
+                        {
+                            lock (stderr) stderr.AppendLine(e.Data);
+                        }
+                    };
+
+                    process.Start();
+                    result.Started = true;
+
+                    process.BeginOutputReadLine();
+                    process.BeginErrorReadLine();
+
+                    if (process.WaitForExit(processTimeoutMs) && outputDone.WaitOne(10000) && errorDone.WaitOne(10000))
+                    {
+                        process.WaitForExit();
+                        result.ExitCode = process.ExitCode;
+                    }
+                    else
+                    {
+                        result.TimedOut = true;
+
+                        try
+                        {
+                            if (!process.HasExited)
+                                process.Kill();
+                        }
+                        catch { }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Started = false;
+                lock (stderr) stderr.AppendLine(ex.Message);
+            }
+
+            lock (stdout) result.StandardOutput = stdout.ToString();
+            lock (stderr) result.StandardError = stderr.ToString();
+
+            return result;
+        }
+
         private string RunProcess(string exePath, string arguments)
         {
-
-            var process = new System.Diagnostics.Process();
-            process.StartInfo.FileName = exePath;
-            process.StartInfo.Arguments = arguments;
-            process.StartInfo.UseShellExecute = false;
-            process.StartInfo.RedirectStandardOutput = true;
-            process.StartInfo.CreateNoWindow = true;
-            process.Start();
-
-            string output = process.StandardOutput.ReadToEnd();
-            process.WaitForExit();
-            return output;
+            return RunProcessDetailed(exePath, arguments, null).StandardOutput;
         }
 
         private string GetMatch(string input, string pattern)
@@ -141,49 +370,63 @@ namespace APKdevastate
 
         private Dictionary<string, string[]> LoadTrustedOrganizations()
         {
-            if (trustedOrgsCache != null)
-                return trustedOrgsCache;
-
-            trustedOrgsCache = new Dictionary<string, string[]>();
-
-            try
+            lock (trustedOrgsLock)
             {
-                string jsonPath = Path.Combine(Application.StartupPath, "Resources", "certifications.json");
-                
-                if (!File.Exists(jsonPath))
+                if (trustedOrgsCache != null)
                     return trustedOrgsCache;
 
-                string jsonContent = File.ReadAllText(jsonPath);
-                
-                var orgsMatch = Regex.Match(jsonContent, @"""trustedOrganizations""\s*:\s*\{([^}]+)\}", RegexOptions.Singleline);
-                if (!orgsMatch.Success)
-                    return trustedOrgsCache;
+                var loaded = new Dictionary<string, string[]>();
 
-                string orgsContent = orgsMatch.Groups[1].Value;
-              
-                var orgMatches = Regex.Matches(orgsContent, @"""([^""]+)""\s*:\s*\[([^\]]+)\]");
-
-                foreach (Match match in orgMatches)
+                try
                 {
-                    string key = match.Groups[1].Value;
-                    string valuesStr = match.Groups[2].Value;
-                    
-                    var valueMatches = Regex.Matches(valuesStr, @"""([^""]+)""");
-                    string[] values = new string[valueMatches.Count];
-                    for (int i = 0; i < valueMatches.Count; i++)
-                    {
-                        values[i] = valueMatches[i].Groups[1].Value;
-                    }
-                    
-                    trustedOrgsCache[key] = values;
-                }
-            }
-            catch
-            {
-                
-            }
+                    string jsonPath = Path.Combine(Application.StartupPath, "Resources", "certifications.json");
 
-            return trustedOrgsCache;
+                    if (!File.Exists(jsonPath))
+                        return loaded;
+
+                    string jsonContent = File.ReadAllText(jsonPath);
+
+                    var orgsMatch = Regex.Match(
+                        jsonContent,
+                        @"""trustedOrganizations""\s*:\s*\{((?:[^{}]|(?<open>\{)|(?<-open>\}))*(?(open)(?!)))\}",
+                        RegexOptions.Singleline);
+
+                    if (!orgsMatch.Success)
+                        return loaded;
+
+                    string orgsContent = orgsMatch.Groups[1].Value;
+
+                    var orgMatches = Regex.Matches(orgsContent, @"""([^""]+)""\s*:\s*\[([^\]]*)\]", RegexOptions.Singleline);
+
+                    foreach (Match match in orgMatches)
+                    {
+                        string key = match.Groups[1].Value;
+                        string valuesStr = match.Groups[2].Value;
+
+                        var valueMatches = Regex.Matches(valuesStr, @"""([^""]+)""");
+                        var values = new List<string>(valueMatches.Count);
+
+                        for (int i = 0; i < valueMatches.Count; i++)
+                        {
+                            string value = valueMatches[i].Groups[1].Value.Trim();
+                            if (value.Length > 0)
+                                values.Add(value);
+                        }
+
+                        if (values.Count > 0)
+                            loaded[key] = values.ToArray();
+                    }
+                }
+                catch
+                {
+                    return loaded;
+                }
+
+                if (loaded.Count > 0)
+                    trustedOrgsCache = loaded;
+
+                return loaded;
+            }
         }
 
         private string AnalyzeDynamicLoaders(string tempPath)
@@ -221,48 +464,45 @@ namespace APKdevastate
                 
                 int checkedFiles = 0;
 
-                Parallel.ForEach(smaliFiles, (file, state) => 
+                var searchNames = loaderNames
+                    .Select(n => n.StartsWith("Ldalvik/system/", StringComparison.Ordinal)
+                        ? n.Substring("Ldalvik/system/".Length)
+                        : n)
+                    .Distinct(StringComparer.Ordinal)
+                    .ToArray();
+
+                Parallel.ForEach(smaliFiles, (file) =>
                 {
+                    System.Threading.Interlocked.Increment(ref checkedFiles);
+
                     string fileName = Path.GetFileNameWithoutExtension(file);
                     if (fileName.Length > 100)
                     {
                         lock (lockObj) isProtected = true;
                     }
-                    
-                    try
+
+                    string content = ReadFileForScan(file);
+                    if (content == null)
+                        return;
+
+                    foreach (var loader in searchNames)
                     {
-                        string content = File.ReadAllText(file);
-                        foreach (var loader in loaderNames)
+                        bool alreadyFound;
+                        lock (lockObj) alreadyFound = detectedLoaders.Contains(loader);
+
+                        if (!alreadyFound && ContainsToken(content, loader))
                         {
-                            bool alreadyFound;
-                            lock (lockObj) alreadyFound = detectedLoaders.Contains(loader);
-                            
-                            if (!alreadyFound && content.Contains(loader))
+                            lock (lockObj)
                             {
-                                lock (lockObj)
-                                {
-                                    if (!detectedLoaders.Contains(loader))
-                                        detectedLoaders.Add(loader);
-                                }
+                                if (!detectedLoaders.Contains(loader))
+                                    detectedLoaders.Add(loader);
                             }
                         }
                     }
-                    catch { return; } 
-                    
-                    bool shouldStop = false;
-                    lock (lockObj)
-                    {
-                        checkedFiles++;
-                        int current = checkedFiles;
-                        
-                        if (isProtected && detectedLoaders.Count > 3) shouldStop = true;
-                        else if (current > 500 && detectedLoaders.Count > 0) shouldStop = true;
-                    }
- 
-                     if (shouldStop)
-                         state.Stop();
                 });
-                
+
+                detectedLoaders.Sort(StringComparer.Ordinal);
+
                 if (detectedLoaders.Count == 0)
                 {
                     result.AppendLine("No dynamic loaders detected");
@@ -334,22 +574,33 @@ namespace APKdevastate
 
                 object lockObj = new object();
 
-                Parallel.ForEach(architectures, (archDir) =>
+                var scanTargets = new List<string>(architectures);
+
+                Parallel.ForEach(scanTargets, (archDir) =>
                 {
                     string archName = Path.GetFileName(archDir);
-                    var soFiles = Directory.GetFiles(archDir, "*.so", SearchOption.AllDirectories);
-                    
-                    List<string> soNames = new List<string>();
+
+                    string[] soFiles;
+                    try
+                    {
+                        soFiles = Directory.GetFiles(archDir, "*.so", SearchOption.AllDirectories);
+                    }
+                    catch
+                    {
+                        return;
+                    }
+
+                    List<string> soPaths = new List<string>();
                     foreach (var soFile in soFiles)
                     {
                         string soName = Path.GetFileName(soFile);
-                        soNames.Add(soName);
-                        
+                        soPaths.Add(soFile);
+
                         lock (lockObj)
                         {
                             allSoFiles.Add(soName);
                         }
-                     
+
                         string soNameLower = soName.ToLower();
                         foreach (var keyword in suspiciousKeywords)
                         {
@@ -365,12 +616,35 @@ namespace APKdevastate
                             }
                         }
                     }
-                    
+
                     lock (lockObj)
                     {
-                        archLibs[archName] = soNames;
+                        archLibs[archName] = soPaths;
                     }
                 });
+
+                var rootSoFiles = Directory.GetFiles(libPath, "*.so", SearchOption.TopDirectoryOnly);
+                if (rootSoFiles.Length > 0)
+                {
+                    List<string> rootPaths = new List<string>();
+                    foreach (var soFile in rootSoFiles)
+                    {
+                        string soName = Path.GetFileName(soFile);
+                        rootPaths.Add(soFile);
+                        allSoFiles.Add(soName);
+
+                        string soNameLower = soName.ToLower();
+                        foreach (var keyword in suspiciousKeywords)
+                        {
+                            if (soNameLower.Contains(keyword) && !suspiciousSoFiles.Contains(soName))
+                            {
+                                suspiciousSoFiles.Add(soName);
+                            }
+                        }
+                    }
+
+                    archLibs["lib"] = rootPaths;
+                }
 
           
                 //result.AppendLine("Native Library Analysis Results");
@@ -381,11 +655,27 @@ namespace APKdevastate
                 foreach (var arch in archLibs)
                 {
                     result.AppendLine($"[{arch.Key}] - {arch.Value.Count} files");
-                    foreach (var lib in arch.Value)
+                    foreach (var libFullPath in arch.Value)
                     {
-                        FileInfo fileInfo = new FileInfo(Path.Combine(libPath, arch.Key, lib));
-                        double sizeKB = fileInfo.Length / 1024.0;
-                        result.AppendLine($"   - {lib} ({sizeKB:F1} KB)");
+                        string lib = Path.GetFileName(libFullPath);
+
+                        try
+                        {
+                            FileInfo fileInfo = new FileInfo(libFullPath);
+                            if (fileInfo.Exists)
+                            {
+                                double sizeKB = fileInfo.Length / 1024.0;
+                                result.AppendLine($"   - {lib} ({sizeKB:F1} KB)");
+                            }
+                            else
+                            {
+                                result.AppendLine($"   - {lib}");
+                            }
+                        }
+                        catch
+                        {
+                            result.AppendLine($"   - {lib}");
+                        }
                     }
                     result.AppendLine();
                 }
@@ -448,8 +738,7 @@ namespace APKdevastate
             
             try
             {
-                richTextBoxlog.Clear();
-                Invoke((MethodInvoker)(() => richTextBoxlog.AppendText("Jadx analyzing encrypted APK...")));
+                SetLog("Jadx analyzing encrypted APK...");
 
                 string resourcesPath = Path.Combine(Application.StartupPath, "resources");
                 string jadxBatPath = Path.Combine(resourcesPath, "jadx.bat");
@@ -477,30 +766,35 @@ namespace APKdevastate
                 }
 
                 string jadxArgs = $"-d \"{jadxOutputPath}\" \"{apkPath}\"";
-                
-                var process = new System.Diagnostics.Process();
-                process.StartInfo.FileName = jadxPath;
-                process.StartInfo.Arguments = jadxArgs;
-                process.StartInfo.UseShellExecute = false;
-                process.StartInfo.RedirectStandardOutput = true;
-                process.StartInfo.RedirectStandardError = true;
-                process.StartInfo.CreateNoWindow = true;
-                process.StartInfo.WorkingDirectory = resourcesPath;
-                process.Start();
-                
-                string jadxOutput = process.StandardOutput.ReadToEnd();
-                string jadxError = process.StandardError.ReadToEnd();
-                process.WaitForExit();
 
-                if (!Directory.Exists(jadxOutputPath))
+                var run = RunProcessDetailed(jadxPath, jadxArgs, resourcesPath);
+
+                if (!run.Started)
+                {
+                    result.AppendLine("Jadx could not be started - deep analysis unavailable");
+                    return result.ToString();
+                }
+
+                if (run.TimedOut)
+                {
+                    result.AppendLine("Jadx timed out - deep analysis incomplete");
+                    return result.ToString();
+                }
+
+                string sourcesPath = Path.Combine(jadxOutputPath, "sources");
+                bool decompiled = Directory.Exists(sourcesPath) &&
+                                  Directory.GetFiles(sourcesPath, "*.java", SearchOption.AllDirectories).Length > 0;
+
+                if (!Directory.Exists(jadxOutputPath) || !decompiled)
                 {
                     result.AppendLine("APK could not be decompiled - heavily encrypted");
+                    encryptionEvidenceFound = true;
                     return result.ToString();
                 }
 
                 result.AppendLine("APK is encrypted or packed");
+                encryptionEvidenceFound = true;
 
-                string sourcesPath = Path.Combine(jadxOutputPath, "sources");
                 if (Directory.Exists(sourcesPath))
                 {
                     var javaFiles = Directory.GetFiles(sourcesPath, "*.java", SearchOption.AllDirectories);
@@ -528,8 +822,10 @@ namespace APKdevastate
                     {
                         try
                         {
-                            string content = File.ReadAllText(javaFile);
-                            
+                            string content = ReadFileForScan(javaFile);
+                            if (content == null)
+                                return;
+
                             foreach (var pattern in searchPatterns)
                             {
                                 if (content.Contains(pattern))
@@ -699,56 +995,51 @@ namespace APKdevastate
                 List<string> antiAnalysis = new List<string>();
 
                 string tempDexPath = Path.Combine(tempPath, "strings_analysis");
-                
+
                 if (Directory.Exists(tempDexPath))
                 {
                     Directory.Delete(tempDexPath, true);
                 }
-                
+
                 Directory.CreateDirectory(tempDexPath);
 
+                try
+                {
                 using (ZipArchive archive = ZipFile.OpenRead(apkPath))
                 {
                     var dexEntries = archive.Entries.Where(e => e.Name.EndsWith(".dex")).ToList();
-                    
+
                     if (dexEntries.Count == 0)
                     {
                         result.AppendLine("No DEX files found - APK is heavily protected");
+                        encryptionEvidenceFound = true;
                         return result.ToString();
                     }
-                    
+
+                    int extractedDexCount = 0;
                     foreach (var dexEntry in dexEntries)
                     {
-                        string extractedDex = Path.Combine(tempDexPath, dexEntry.Name);
-                        
+                        extractedDexCount++;
+                        string extractedDex = Path.Combine(tempDexPath, extractedDexCount + "_" + dexEntry.Name);
+
                         if (File.Exists(extractedDex))
                         {
                             File.Delete(extractedDex);
                         }
-                        
+
                         dexEntry.ExtractToFile(extractedDex, false);
-                        
-                        var process = new System.Diagnostics.Process();
-                        process.StartInfo.FileName = stringsExePath;
-                        process.StartInfo.Arguments = $"-n 8 \"{extractedDex}\"";
-                        process.StartInfo.UseShellExecute = false;
-                        process.StartInfo.RedirectStandardOutput = true;
-                        process.StartInfo.RedirectStandardError = true;
-                        process.StartInfo.CreateNoWindow = true;
-                        process.Start();
-                        
-                        string stringsOutput = process.StandardOutput.ReadToEnd();
-                        string stringsError = process.StandardError.ReadToEnd();
-                        process.WaitForExit();
-                        
+
+                        var run = RunProcessDetailed(stringsExePath, $"-n 8 \"{extractedDex}\"", null);
+                        string stringsOutput = run.StandardOutput;
+
                         foreach (var signature in packerSignatures)
                         {
-                            if (stringsOutput.Contains(signature.Key) && !detectedPackers.Contains(signature.Value))
+                            if (ContainsToken(stringsOutput, signature.Key) && !detectedPackers.Contains(signature.Value))
                             {
                                 detectedPackers.Add(signature.Value);
                             }
                         }
-                        
+
                         string[] antiAnalysisPatterns = {
                             "isDebuggerConnected", "Debug.isDebuggerConnected", 
                             "/proc/self/status", "TracerPid",
@@ -760,41 +1051,32 @@ namespace APKdevastate
                         
                         foreach (var pattern in antiAnalysisPatterns)
                         {
-                            if (stringsOutput.Contains(pattern) && !antiAnalysis.Contains(pattern))
+                            if (ContainsToken(stringsOutput, pattern) && !antiAnalysis.Contains(pattern))
                             {
                                 antiAnalysis.Add(pattern);
                             }
                         }
                     }
-                    
+
                     var soEntries = archive.Entries.Where(e => e.Name.EndsWith(".so"));
                     foreach (var soEntry in soEntries)
                     {
                         string uniqueSoName = soEntry.FullName.Replace("/", "_").Replace("\\", "_");
                         string extractedSo = Path.Combine(tempDexPath, uniqueSoName);
-                        
+
                         if (File.Exists(extractedSo))
                         {
                             continue;
                         }
-                        
+
                         soEntry.ExtractToFile(extractedSo, false);
-                        
-                        var process = new System.Diagnostics.Process();
-                        process.StartInfo.FileName = stringsExePath;
-                        process.StartInfo.Arguments = $"-n 6 \"{extractedSo}\"";
-                        process.StartInfo.UseShellExecute = false;
-                        process.StartInfo.RedirectStandardOutput = true;
-                        process.StartInfo.RedirectStandardError = true;
-                        process.StartInfo.CreateNoWindow = true;
-                        process.Start();
-                        
-                        string stringsOutput = process.StandardOutput.ReadToEnd();
-                        process.WaitForExit();
-                        
+
+                        var soRun = RunProcessDetailed(stringsExePath, $"-n 6 \"{extractedSo}\"", null);
+                        string soStringsOutput = soRun.StandardOutput;
+
                         foreach (var signature in packerSignatures)
                         {
-                            if (stringsOutput.Contains(signature.Key) && !detectedPackers.Contains(signature.Value))
+                            if (ContainsToken(soStringsOutput, signature.Key) && !detectedPackers.Contains(signature.Value))
                             {
                                 detectedPackers.Add(signature.Value);
                             }
@@ -805,6 +1087,7 @@ namespace APKdevastate
                 if (detectedPackers.Count > 0)
                 {
                     result.AppendLine($"Packer/Protector: {string.Join(", ", detectedPackers)}");
+                    encryptionEvidenceFound = true;
                 }
 
                 if (antiAnalysis.Count > 0)
@@ -815,10 +1098,18 @@ namespace APKdevastate
                         result.AppendLine($"  ... and {antiAnalysis.Count - 3} more techniques");
                     }
                 }
-
-                Directory.Delete(tempDexPath, true);
+                }
+                finally
+                {
+                    try
+                    {
+                        if (Directory.Exists(tempDexPath))
+                            Directory.Delete(tempDexPath, true);
+                    }
+                    catch { }
+                }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 result.AppendLine("String analysis could not be completed");
             }
@@ -852,21 +1143,26 @@ namespace APKdevastate
                 
                 Directory.CreateDirectory(dex2jarOutput);
 
-                var process = new System.Diagnostics.Process();
-                process.StartInfo.FileName = dex2jarPath;
-                process.StartInfo.Arguments = $"-f -o \"{Path.Combine(dex2jarOutput, "classes.jar")}\" \"{apkPath}\"";
-                process.StartInfo.UseShellExecute = false;
-                process.StartInfo.RedirectStandardOutput = true;
-                process.StartInfo.RedirectStandardError = true;
-                process.StartInfo.CreateNoWindow = true;
-                process.StartInfo.WorkingDirectory = resourcesPath;
-                process.Start();
-                
-                string dex2jarStdout = process.StandardOutput.ReadToEnd();
-                string dex2jarStderr = process.StandardError.ReadToEnd();
-                process.WaitForExit();
+                var run = RunProcessDetailed(
+                    dex2jarPath,
+                    $"-f -o \"{Path.Combine(dex2jarOutput, "classes.jar")}\" \"{apkPath}\"",
+                    resourcesPath);
 
-                if (process.ExitCode == 0)
+                string dex2jarStderr = run.StandardError;
+
+                if (run.TimedOut)
+                {
+                    result.AppendLine("Dex2Jar timed out");
+                    return result.ToString();
+                }
+
+                if (!run.Started)
+                {
+                    result.AppendLine("Dex2Jar could not be started");
+                    return result.ToString();
+                }
+
+                if (run.ExitCode == 0)
                 {
                     string jarPath = Path.Combine(dex2jarOutput, "classes.jar");
                     if (File.Exists(jarPath))
@@ -901,14 +1197,15 @@ namespace APKdevastate
                     result.AppendLine("Conversion failed - APK may be heavily protected");
                     if (!string.IsNullOrEmpty(dex2jarStderr))
                     {
-                        if (dex2jarStderr.Contains("decrypt") || dex2jarStderr.Contains("encrypt"))
+                        if (ContainsIgnoreCase(dex2jarStderr, "decrypt") || ContainsIgnoreCase(dex2jarStderr, "encrypt"))
                         {
                             result.AppendLine("DEX encryption detected");
+                            encryptionEvidenceFound = true;
                         }
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 result.AppendLine("Dex2Jar analysis could not be completed");
             }
@@ -918,18 +1215,41 @@ namespace APKdevastate
 
         private string GetCertificateInfo(string apkPath)
         {
-            richTextBoxlog.Clear();
-            Invoke((MethodInvoker)(() => richTextBoxlog.AppendText("Apksigner working...")));
+            SetLog("Apksigner working...");
+
+            signatureVerified = false;
+            certificateDn = "";
+
             string resourcesPath = Path.Combine(Application.StartupPath, "resources");
             string apksignerPath = Path.Combine(resourcesPath, "apksigner.jar");
+
+            if (!File.Exists(apksignerPath))
+                return "Certificate could not be checked (apksigner.jar not found).";
 
             string javaPath = "java";
             string arguments = $"-jar \"{apksignerPath}\" verify --print-certs \"{apkPath}\"";
 
-            string output = RunProcess(javaPath, arguments);
+            var run = RunProcessDetailed(javaPath, arguments, resourcesPath);
+
+            if (!run.Started)
+                return "Certificate could not be checked (java could not be started).";
+
+            if (run.TimedOut)
+                return "Certificate could not be checked (apksigner timed out).";
+
+            string output = run.Combined;
 
             var match = Regex.Match(output, @"Signer #1 certificate DN:\s*(.+)");
-            return match.Success ? match.Groups[1].Value : "Certificate info not found.";
+            if (!match.Success)
+                return "Certificate info not found.";
+
+            certificateDn = match.Groups[1].Value.Trim();
+            signatureVerified = run.ExitCode == 0;
+
+            if (!signatureVerified)
+                return certificateDn + Environment.NewLine + "WARNING: APK signature did NOT verify.";
+
+            return certificateDn;
         }
 
        // problemli ve ustunde istenilmesi lazim olan kod parcasi
@@ -966,6 +1286,9 @@ namespace APKdevastate
 
         private async void analizbutton_Click(object sender, EventArgs e)
         {
+            if (analysisRunning)
+                return;
+
             analizbutton.Visible = false;
             analizinaltindakibutton.Visible = true;
 
@@ -980,26 +1303,51 @@ namespace APKdevastate
 
             if (string.IsNullOrEmpty(selectedApkPath) || !File.Exists(selectedApkPath))
             {
-                MessageBox.Show("Error");
+                MessageBox.Show("The selected APK file could not be found.", "File Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                analizbutton.Visible = true;
+                analizinaltindakibutton.Visible = false;
                 return;
             }
-            
-            elapsedSeconds = 0;
-            richTextBoxanaliz.Text = "null:null";
-            countdownTimer.Start();
-            analysisStopwatch.Start();
-
-            textboxalert.Text = "Waiting...";
-            allprosessbar.Value = 0;
-            allprosessbar.Visible = true;
-            
-            jadxAnalysisResult = "";
 
             string resourcesPath = Path.Combine(Application.StartupPath, "resources");
             string aaptPath = Path.Combine(resourcesPath, "aapt.exe");
             string apktoolPath = Path.Combine(resourcesPath, "apktool.jar");
             string tempPath = Path.Combine(Application.StartupPath, "temp");
 
+            if (!File.Exists(aaptPath) || !File.Exists(apktoolPath))
+            {
+                MessageBox.Show("aapt.exe or apktool.jar not found in the resources folder! Analysis cannot start.", "Configuration Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                analizbutton.Visible = true;
+                analizinaltindakibutton.Visible = false;
+                return;
+            }
+
+            analysisRunning = true;
+            newapkButton.Enabled = false;
+
+            elapsedSeconds = 0;
+            richTextBoxanaliz.Text = "00:00";
+            countdownTimer.Start();
+            analysisStopwatch.Restart();
+
+            textboxalert.Text = "Waiting...";
+            allprosessbar.Value = 0;
+            allprosessbar.Visible = true;
+
+            jadxAnalysisResult = "";
+            nativeLibResult = "";
+            dynamicLoadersResult = "";
+            protectionSummaryText = "";
+            activeProtectionView = "summary";
+            certificateDn = "";
+            signatureVerified = false;
+            encryptionEvidenceFound = false;
+            analysisResultColor = Color.Black;
+
+            string analysisError = null;
+
+            try
+            {
             await Task.Run(() =>
             {
                 if (Directory.Exists(tempPath))
@@ -1011,58 +1359,64 @@ namespace APKdevastate
                     Directory.CreateDirectory(tempPath);
                 }
 
-                richTextBoxlog.Clear();
-                Invoke((MethodInvoker)(() => richTextBoxlog.AppendText("Extracting .xml.")));
-                Invoke((MethodInvoker)(() => allprosessbar.Value = 15));
+                SetLog("Extracting .xml.");
+                SetProgress(15);
 
                 string javaPath = "java";
                 string apktoolArgs = $"-jar \"{apktoolPath}\" d \"{selectedApkPath}\" -o \"{tempPath}\" -f";
-                RunProcess(javaPath, apktoolArgs);
+                var apktoolRun = RunProcessDetailed(javaPath, apktoolArgs, resourcesPath);
+
+                if (!apktoolRun.Started)
+                    throw new InvalidOperationException("Java could not be started. Please make sure Java is installed and available in PATH.");
+
+                if (apktoolRun.TimedOut)
+                    throw new TimeoutException("Apktool did not finish in time and was stopped.");
 
                 string manifestPath = Path.Combine(tempPath, "AndroidManifest.xml");
                 if (File.Exists(manifestPath))
                 {
                     string manifestContent = File.ReadAllText(manifestPath);
-                    Invoke((MethodInvoker)(() =>
+                    SafeInvoke(() =>
                     {
                         richtextboxapktoolyml.Clear();
                         richtextboxapktoolyml.Text = manifestContent;
-                    }));
+                    });
                 }
                 else
                 {
-                    richTextBoxlog.Clear();
-                    Invoke((MethodInvoker)(() => richTextBoxlog.AppendText("AndroidManifest.xml not found. Starting deep analysis...")));
-                    Invoke((MethodInvoker)(() => allprosessbar.Value = 20));
-                    
+                    SetLog("AndroidManifest.xml not found. Starting deep analysis...");
+                    SetProgress(20);
+
                     jadxAnalysisResult = AnalyzeWithJadx(selectedApkPath, tempPath);
-                    
-                    richTextBoxlog.Clear();
-                    Invoke((MethodInvoker)(() => richTextBoxlog.AppendText("Analyzing with strings.exe...")));
-                    Invoke((MethodInvoker)(() => allprosessbar.Value = 30));
-                    
+
+                    SetLog("Analyzing with strings.exe...");
+                    SetProgress(30);
+
                     string stringAnalysis = AnalyzeWithStrings(selectedApkPath, tempPath);
                     if (!string.IsNullOrEmpty(stringAnalysis))
                     {
                         jadxAnalysisResult += "\n\n" + stringAnalysis;
                     }
-                    
-                    richTextBoxlog.Clear();
-                    Invoke((MethodInvoker)(() => richTextBoxlog.AppendText("Converting with dex2jar...")));
-                    Invoke((MethodInvoker)(() => allprosessbar.Value = 40));
-                    
+
+                    SetLog("Converting with dex2jar...");
+                    SetProgress(40);
+
                     string dex2jarAnalysis = AnalyzeWithDex2Jar(selectedApkPath, tempPath);
                     if (!string.IsNullOrEmpty(dex2jarAnalysis))
                     {
                         jadxAnalysisResult += "\n\n" + dex2jarAnalysis;
                     }
-                    
-                    Invoke((MethodInvoker)(() =>
+
+                    string manifestMessage = encryptionEvidenceFound
+                        ? "AndroidManifest.xml could not be extracted - APK is encrypted or packed"
+                        : "AndroidManifest.xml could not be extracted - apktool could not decode this APK";
+
+                    SafeInvoke(() =>
                     {
                         richtextboxapktoolyml.Clear();
-                        richtextboxapktoolyml.Text = "AndroidManifest.xml could not be extracted - APK is encrypted or packed";
-                        allprosessbar.Value = 45;
-                    }));
+                        richtextboxapktoolyml.Text = manifestMessage;
+                    });
+                    SetProgress(45);
                 }
                                                                
                 // Base64 encoded RAT adlari - Windows Defender bypass ucun
@@ -1095,12 +1449,14 @@ namespace APKdevastate
                     ratadlari[i] = DecodeBase64(ratadlariEncoded[i]);
                 }
 
-                richTextBoxlog.Clear();
-                Invoke((MethodInvoker)(() => richTextBoxlog.AppendText("Looking for RAT.")));
-                textboxalert.Clear();
-                textboxalert.Text = "scanning for RAT. may take a long time please wait";
-                
-                
+                SetLog("Looking for RAT.");
+                SafeInvoke(() =>
+                {
+                    textboxalert.Clear();
+                    textboxalert.Text = "scanning for RAT. may take a long time please wait";
+                });
+
+
                 bool ratFound = false;
                 string foundRatName = "";
 
@@ -1117,8 +1473,11 @@ namespace APKdevastate
                 {
                     try
                     {
-                        string content = File.ReadAllText(file).ToLower();
-                        if (content.Contains(metasploitPackage))
+                        string content = ReadFileForScan(file);
+                        if (content == null)
+                            continue;
+
+                        if (ContainsIgnoreCase(content, metasploitPackage))
                         {
                             ratFound = true;
                             foundRatName = metasploitName;
@@ -1152,21 +1511,22 @@ namespace APKdevastate
            
                 if (!ratFound)
                 {
-                    allFiles = Directory.GetFiles(tempPath, "*.*", SearchOption.AllDirectories);
                 foreach (var file in allFiles)
                 {
                     string fileName = Path.GetFileNameWithoutExtension(file);
-           
+
 
                     try
                     {
-                        string content = File.ReadAllText(file).ToLower();
+                        string content = ReadFileForScan(file);
+                        if (content == null)
+                            continue;
 
                         //CraxsRati dedect etmek ucun
                         string craxsKeyword = DecodeBase64("c3B5bWF4"); // spymax
                         string craxsRatName = DecodeBase64("Y3JheHNyYXQ="); // craxsrat
-                        
-                        if (fileName.Equals("accessdiecrip", StringComparison.OrdinalIgnoreCase) && content.Contains(craxsKeyword))
+
+                        if (fileName.Equals("accessdiecrip", StringComparison.OrdinalIgnoreCase) && ContainsIgnoreCase(content, craxsKeyword))
                         {
                             ratFound = true;
                             foundRatName = craxsRatName;
@@ -1178,7 +1538,7 @@ namespace APKdevastate
                         string spynoteV5Keyword = DecodeBase64("Y2FtZXJhX21hbmFnZXJmeGYweDR4NHgwZnhm"); // camera_managerfxf0x4x4x0fxf
                         string spynoteName = DecodeBase64("c3B5bm90ZQ=="); // spynote
                         
-                        if (content.Contains(spynoteV5Keyword))
+                        if (ContainsIgnoreCase(content, spynoteV5Keyword))
                         {
                             ratFound = true;
                             foundRatName = spynoteName;
@@ -1188,7 +1548,7 @@ namespace APKdevastate
                         //Spynote version 6.4u dedect etmek ucun
                         string spynoteV6Keyword = DecodeBase64("c3B5X25vdGU="); // spy_note
 
-                            if (content.Contains(spynoteV6Keyword))
+                            if (ContainsIgnoreCase(content, spynoteV6Keyword))
                             {
                                 ratFound = true;
                                 foundRatName = spynoteName;
@@ -1199,7 +1559,7 @@ namespace APKdevastate
                         string massratkeyword = DecodeBase64("TllBTnhDQVQ="); // NYANxCAT(massrat)
                         string massratname = DecodeBase64("TUFTU1JBVA==");
 
-                            if (content.Contains(massratkeyword))
+                            if (ContainsIgnoreCase(content, massratkeyword))
                             {
                                 ratFound = true;
                                 foundRatName = massratname;
@@ -1211,7 +1571,7 @@ namespace APKdevastate
                             string qiratkeyword = DecodeBase64("Y29tLnFpcmF0LnN0dWI=");
                             string qiratname = DecodeBase64("cWlSQVQ=");
 
-                            if (content.Contains(qiratkeyword)) {
+                            if (ContainsIgnoreCase(content, qiratkeyword)) {
                                 ratFound = true;
                                 foundRatName = qiratname;
                                 break;
@@ -1221,7 +1581,7 @@ namespace APKdevastate
 
                             string spynotenewrule = DecodeBase64("Y21mMC5jM2I1Ym05MHpxLnBhdGNo");
 
-                            if (content.Contains(spynotenewrule))
+                            if (ContainsIgnoreCase(content, spynotenewrule))
                             {
                                 ratFound = true;
                                 foundRatName = spynoteName;
@@ -1239,7 +1599,7 @@ namespace APKdevastate
                             string ahmythKeyword = DecodeBase64("YWhteXRoLm1pbmUua2luZy5haG15dGg="); // ahmyth.mine.king.ahmyth
                             string ahmythname = DecodeBase64("QWhteXRo");
 
-                            if (content.Contains(ahmythKeyword))
+                            if (ContainsIgnoreCase(content, ahmythKeyword))
                             {
                                 ratFound = true;
                                 foundRatName = ahmythname;
@@ -1251,18 +1611,17 @@ namespace APKdevastate
                         string drodjackKeyword = DecodeBase64("bmV0LmRyb2lkamFjaw=="); // net.doidjack
                         string droidjack = DecodeBase64("ZHJvaWRqYWNr"); // droidjack
 
-                            if (content.Contains(drodjackKeyword))
+                            if (ContainsIgnoreCase(content, drodjackKeyword))
                             {
                                 ratFound = true;
                                 foundRatName = droidjack;
                                 break;
                             }
 
-                         string content2 = File.ReadAllText(file).ToLower();
                          string androratKeyword = DecodeBase64("QW5kcm9yYXRBY3Rpdml0eQ=="); // AndroidActivity
                          string androrat = DecodeBase64("YW5kcm9yYXQ="); // androrat
 
-                            if (fileName.Equals("AndroidActivity", StringComparison.OrdinalIgnoreCase) && content2.Contains(androratKeyword))
+                            if (fileName.Equals(androratKeyword, StringComparison.OrdinalIgnoreCase) && ContainsIgnoreCase(content, androratKeyword))
                               {
                                        ratFound = true;
                                        foundRatName = androrat;
@@ -1294,7 +1653,7 @@ namespace APKdevastate
 
                             foreach (var keyword in ratadlari)
                             {
-                                if (content.Contains(keyword))
+                                if (ContainsIgnoreCase(content, keyword))
                                 {
                                     ratFound = true;
                                     foundRatName = keyword;
@@ -1311,7 +1670,7 @@ namespace APKdevastate
                 }
                 }
 
-                Invoke((MethodInvoker)(() => allprosessbar.Value = 50));
+                SetProgress(50);
 
                 bool isProtected = false;
                 var smaliFiles = Directory.GetFiles(tempPath, "*.smali", SearchOption.AllDirectories);
@@ -1325,17 +1684,17 @@ namespace APKdevastate
                     }
                 }
 
-                richTextBoxlog.Clear();
-                Invoke((MethodInvoker)(() => richTextBoxlog.AppendText("Dumping permissions")));
-                Invoke((MethodInvoker)(() => allprosessbar.Value = 50));
+                SetLog("Dumping permissions");
+                SetProgress(60);
 
-                string aaptOutput = RunProcess(aaptPath, $"dump badging \"{selectedApkPath}\"");
+                var aaptRun = RunProcessDetailed(aaptPath, $"dump badging \"{selectedApkPath}\"", resourcesPath);
+                string aaptOutput = aaptRun.StandardOutput;
                 string packageName = GetMatch(aaptOutput, @"package: name='(.*?)'");
                 string sdkVersion = GetMatch(aaptOutput, @"sdkVersion:'(.*?)'");
                 var permissionMatches = Regex.Matches(aaptOutput, @"uses-permission: name='(.*?)'");
                 int permissionCount = permissionMatches.Count;
 
-                Invoke((MethodInvoker)(() => allprosessbar.Value = 70));
+                SetProgress(70);
                 string certInfo = GetCertificateInfo(selectedApkPath);
 
 
@@ -1352,22 +1711,24 @@ namespace APKdevastate
                         stream.Position = 0;
                         byte[] sha256Bytes = sha256.ComputeHash(stream);
 
-                        richTextBoxlog.Clear();
-                        Invoke((MethodInvoker)(() => richTextBoxlog.AppendText("Extracting hash...")));
+                        SetLog("Extracting hash...");
                         md5Text = "MD5: " + BitConverter.ToString(md5Bytes).Replace("-", "").ToLowerInvariant();
                         sha1Text = "SHA1: " + BitConverter.ToString(sha1Bytes).Replace("-", "").ToLowerInvariant();
                         sha256Text = "SHA256: " + BitConverter.ToString(sha256Bytes).Replace("-", "").ToLowerInvariant();
 
                     }
 
-                    textBoxmd5.Text = md5Text;
-                    textBoxsha1.Text = sha1Text;
-                    textBoxsha256.Text = sha256Text;
+                    SafeInvoke(() =>
+                    {
+                        textBoxmd5.Text = md5Text;
+                        textBoxsha1.Text = sha1Text;
+                        textBoxsha256.Text = sha256Text;
+                    });
 
                 }
 
 
-                Invoke((MethodInvoker)(() =>
+                SafeInvoke(() =>
                 {
                     textboxalert.Clear();
                     if (ratFound)
@@ -1379,28 +1740,36 @@ namespace APKdevastate
                     else
                     {
                         textboxalert.Text = "No known RAT signatures found in APK.";
-                      
+
                     }
-                }));
+                });
 
                 string[] permissions = permissionMatches.Cast<Match>().Select(m => m.Groups[1].Value).ToArray();
 
                 string analysisResult = AnalyzeApk(permissions, certInfo, isProtected, ratFound, permissionCount, packageName);
 
-                Invoke((MethodInvoker)(() =>
+                SafeInvoke(() =>
                 {
                     richtextboxapksays.Clear();
+                    richtextboxapksays.ForeColor = analysisResultColor;
                     richtextboxapksays.Text = analysisResult;
 
-                }));
+                });
 
-        
+                SetProgress(80);
+
                 nativeLibResult = AnalyzeNativeLibraries(tempPath);
                 dynamicLoadersResult = AnalyzeDynamicLoaders(tempPath);
 
                 ClearTempFolder(tempPath);
 
-                Invoke((MethodInvoker)(() =>
+                protectionSummaryText = !string.IsNullOrEmpty(jadxAnalysisResult)
+                    ? jadxAnalysisResult
+                    : (isProtected
+                        ? "The content of this apk is too long this apk maybe encrypted!"
+                        : "This apk is not encrypted!");
+
+                SafeInvoke(() =>
                 {
                     packagenamelabel.Text = packageName;
                     sdkverisonlabel.Text = sdkVersion;
@@ -1417,16 +1786,7 @@ namespace APKdevastate
                     richtextboxcert.Text = certInfo;
 
                     richtextboxprotectet.Clear();
-                    if (!string.IsNullOrEmpty(jadxAnalysisResult))
-                    {
-                        richtextboxprotectet.Text = jadxAnalysisResult;
-                    }
-                    else
-                    {
-                        richtextboxprotectet.Text = isProtected
-                            ? "The content of this apk is too long this apk maybe encrypted!"
-                            : "This apk is not encrypted!";
-                    }
+                    richtextboxprotectet.Text = protectionSummaryText;
 
                     button1.Visible = true;
                     dynamicloaderbutton.Visible = true;
@@ -1452,12 +1812,36 @@ namespace APKdevastate
                     richTextBoxlog.Clear();
                     richTextBoxlog.AppendText("Done");
                     allprosessbar.Value = 100;
-                }));
-
-                allprosessbar.Value = 0;
+                });
             });
-            countdownTimer.Stop();
-            analysisStopwatch.Stop();
+            }
+            catch (Exception ex)
+            {
+                analysisError = ex.Message;
+            }
+            finally
+            {
+                countdownTimer.Stop();
+                analysisStopwatch.Stop();
+                analysisRunning = false;
+                newapkButton.Enabled = true;
+            }
+
+            if (analysisError != null)
+            {
+                richTextBoxlog.Clear();
+                richTextBoxlog.AppendText("Analysis failed");
+                allprosessbar.Value = 0;
+                richTextBoxanaliz.Text = "Analysis could not be completed.";
+
+                analizbutton.Visible = true;
+                analizinaltindakibutton.Visible = false;
+
+                MessageBox.Show("Analysis could not be completed:" + Environment.NewLine + analysisError, "Analysis Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                analysisStopwatch.Reset();
+                return;
+            }
 
             double totalSeconds = analysisStopwatch.Elapsed.TotalSeconds;
             int minutes = (int)totalSeconds / 60;
@@ -1526,46 +1910,49 @@ namespace APKdevastate
     };
 
   
-            if (ratFound && !string.IsNullOrEmpty(jadxAnalysisResult))
+            if (ratFound && encryptionEvidenceFound)
             {
-                richtextboxapksays.ForeColor = Color.Red;
+                analysisResultColor = Color.Red;
                 return "APKdevastate says: MALICIOUS & ENCRYPTED (This apk is a payload created by a RAT and is also encrypted)";
             }
 
             if (ratFound)
             {
-                richtextboxapksays.ForeColor = Color.Red;
+                analysisResultColor = Color.Red;
                 return "APKdevastate says: MALICIOUS (This apk is a payload created by a RAT)";
             }
 
+            bool certificateAvailable = signatureVerified && !string.IsNullOrEmpty(certificateDn);
+
+            var organizationValues = GetDnFieldValues(certificateDn, new string[] { "o", "ou" });
+            var allCertValues = GetDnFieldValues(certificateDn, new string[] { "cn", "o", "ou", "l", "st", "emailaddress" });
+
             bool isTrustedCert = false;
-            string certInfoLower = certInfo.ToLower();
 
             //regular expressions ai onerisi
-            foreach (var org in trustedOrgs)
+            if (certificateAvailable)
             {
-                if (Regex.IsMatch(certInfoLower, $@"\bo\s*=\s*[^,]*{Regex.Escape(org)}[^,]*", RegexOptions.IgnoreCase) ||    
-                    Regex.IsMatch(certInfoLower, $@"\bou\s*=\s*[^,]*{Regex.Escape(org)}[^,]*", RegexOptions.IgnoreCase) ||   
-                    Regex.IsMatch(certInfoLower, $@"\bcn\s*=\s*[^,]*{Regex.Escape(org)}[^,]*", RegexOptions.IgnoreCase) ||  
-                    Regex.IsMatch(certInfoLower, $@"\bl\s*=\s*[^,]*{Regex.Escape(org)}[^,]*", RegexOptions.IgnoreCase))
+                foreach (var org in trustedOrgs)
                 {
-                    isTrustedCert = true;
-                    break;
-                }
-
-                string pattern = $@"\b{Regex.Escape(org)}\b";
-                if (Regex.IsMatch(certInfoLower, pattern))
-                {
-                    isTrustedCert = true;
-                    break;
+                    if (DnValuesContainToken(organizationValues, org))
+                    {
+                        isTrustedCert = true;
+                        break;
+                    }
                 }
             }
 
-            if (isTrustedCert)
+            List<string> detectedUnwantedKeywords = new List<string>();
+            if (certificateAvailable)
             {
-                richtextboxapksays.ForeColor = Color.Green;
-                return "APKdevastate says: CLEAN (Trusted company certificate detected)";
+                foreach (var keyword in unwantedCertKeywords)
+                {
+                    if (DnValuesContainToken(allCertValues, keyword))
+                        detectedUnwantedKeywords.Add(keyword);
+                }
             }
+
+            bool isUnwantedCert = !certificateAvailable || detectedUnwantedKeywords.Count > 0;
 
             
         //    bool isInPlayStore = false;
@@ -1603,20 +1990,14 @@ namespace APKdevastate
             };
 
             int dangerousPermissionCount = permissions.Count(p => dangerousPermissions.Contains(p));
-    
-            if (permissionCount > 15 && !isTrustedCert)
-            {
-                richtextboxapksays.ForeColor = Color.Red;
-                return "APKdevastate says: MALICIOUS (This apk file asks for too many unnecessary permissions and the valid certificate could not be found. this could be a dangerous apk)";
-            }
-
-            bool isUnwantedCert = unwantedCertKeywords.Any(keyword => certInfo.ToLower().Contains(keyword));
 
             if (dangerousPermissionCount > 4 && isUnwantedCert)
             {
 
-                string detectedKeywords = string.Join(", ", unwantedCertKeywords.Where(k => certInfo.ToLower().Contains(k)));
-                richtextboxapksays.ForeColor = Color.Red;
+                string detectedKeywords = detectedUnwantedKeywords.Count > 0
+                    ? string.Join(", ", detectedUnwantedKeywords)
+                    : "no verified certificate";
+                analysisResultColor = Color.Red;
                 return $"APKdevastate says: UNWANTED (Suspicious certification: {detectedKeywords} + dangerous permissions)";
             }
 
@@ -1624,32 +2005,48 @@ namespace APKdevastate
 
 
             {
-                richtextboxapksays.ForeColor = Color.Red;
+                analysisResultColor = Color.Red;
                 return "APKdevastate says: MALICIOUS (No certification found and dangerous permissions. this could be a dangerous apk)";
             }
 
-            if (isProtected && permissionCount > 10)
+            if (permissionCount > 15 && !isTrustedCert)
             {
-                richtextboxapksays.ForeColor = Color.Red;
+                analysisResultColor = Color.Red;
+                return "APKdevastate says: MALICIOUS (This apk file asks for too many unnecessary permissions and the valid certificate could not be found. this could be a dangerous apk)";
+            }
+
+            if (isProtected && permissionCount > 10 && !isTrustedCert)
+            {
+                analysisResultColor = Color.Red;
                 return "APKdevastate says: SUSPICIOUS (This apk's content is very complicated and it is detected as encrypted and it has multiple permissions, it may be a suspicious apk.)";
             }
 
-            if (!string.IsNullOrEmpty(jadxAnalysisResult))
+            if (encryptionEvidenceFound && !isTrustedCert)
             {
-                richtextboxapksays.ForeColor = Color.Red;
+                analysisResultColor = Color.Red;
                 return "APKdevastate says: ENCRYPTED or PACKED (This apk file is encrypted and packed, and is potentially an unwanted and malicious application)";
             }
 
+            if (isTrustedCert)
+            {
+                analysisResultColor = Color.Green;
+                return "APKdevastate says: CLEAN (Trusted company certificate detected)";
+            }
+
+            analysisResultColor = Color.Green;
             return "APKdevastate says: CLEAN (No malicious intent was matched with the algorithm)";
         }
 
         private void newapkButton_Click(object sender, EventArgs e)
         {
+            if (analysisRunning)
+                return;
+
             using (OpenFileDialog openFileDialog = new OpenFileDialog())
             {
                 openFileDialog.Filter = "APK Files (*.apk)|*.apk";
                 openFileDialog.Title = "Select a new APK file";
-                
+
 
                 if (openFileDialog.ShowDialog() == DialogResult.OK)
                 {
@@ -1657,6 +2054,16 @@ namespace APKdevastate
                     string fileName = Path.GetFileName(selectedApkPath);
                     apknamelabel.Text = fileName;
                     labelalertpayload.Visible = false;
+
+                    nativeLibResult = "";
+                    dynamicLoadersResult = "";
+                    jadxAnalysisResult = "";
+                    protectionSummaryText = "";
+                    activeProtectionView = "summary";
+                    certificateDn = "";
+                    signatureVerified = false;
+                    encryptionEvidenceFound = false;
+                    analysisResultColor = Color.Black;
 
                     analizbutton.Visible = true;
                     analizinaltindakibutton.Visible = false;
@@ -1691,16 +2098,24 @@ namespace APKdevastate
 
         private void guna2Buttonguide_Click(object sender, EventArgs e)
         {
-            guideform guideform = new guideform();
+            if (guideFormInstance == null || guideFormInstance.IsDisposed)
+            {
+                guideFormInstance = new guideform();
+            }
 
-            guideform.Show();
+            guideFormInstance.Show();
+            guideFormInstance.BringToFront();
         }
 
         private void guna2Buttonabout_Click(object sender, EventArgs e)
         {
-            aboutform aboutform = new aboutform();
+            if (aboutFormInstance == null || aboutFormInstance.IsDisposed)
+            {
+                aboutFormInstance = new aboutform();
+            }
 
-            aboutform.Show();
+            aboutFormInstance.Show();
+            aboutFormInstance.BringToFront();
         }
 
 
@@ -1733,21 +2148,55 @@ namespace APKdevastate
                 analysisStopwatch.Stop();
             }
 
+            if (guideFormInstance != null && !guideFormInstance.IsDisposed)
+            {
+                guideFormInstance.Close();
+                guideFormInstance.Dispose();
+            }
+
+            if (aboutFormInstance != null && !aboutFormInstance.IsDisposed)
+            {
+                aboutFormInstance.Close();
+                aboutFormInstance.Dispose();
+            }
+
             base.OnFormClosed(e);
         }
 
         private void button1_Click_1(object sender, EventArgs e)
         {
             richtextboxprotectet.Clear();
-            richtextboxprotectet.Text = nativeLibResult;
-            button1.Visible = false;
+
+            if (activeProtectionView == "native")
+            {
+                activeProtectionView = "summary";
+                richtextboxprotectet.Text = protectionSummaryText;
+            }
+            else
+            {
+                activeProtectionView = "native";
+                richtextboxprotectet.Text = string.IsNullOrEmpty(nativeLibResult)
+                    ? "No native library information available."
+                    : nativeLibResult;
+            }
         }
 
         private void dynamicloaderbutton_Click(object sender, EventArgs e)
         {
             richtextboxprotectet.Clear();
-            richtextboxprotectet.Text = dynamicLoadersResult;
-            dynamicloaderbutton.Visible = false;
+
+            if (activeProtectionView == "loaders")
+            {
+                activeProtectionView = "summary";
+                richtextboxprotectet.Text = protectionSummaryText;
+            }
+            else
+            {
+                activeProtectionView = "loaders";
+                richtextboxprotectet.Text = string.IsNullOrEmpty(dynamicLoadersResult)
+                    ? "No dynamic loader information available."
+                    : dynamicLoadersResult;
+            }
         }
     }
 }
