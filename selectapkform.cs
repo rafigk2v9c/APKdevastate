@@ -43,12 +43,19 @@ namespace APKdevastate
                     "Java is not installed on your system!\n\n" +
                     "APKdevastate requires Java to analyze APK files.\n" +
                     "Please install Java (JDK or JRE) and try again.\n\n",
-                 
+
                     "Java Not Found",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error
                 );
-                Application.Exit();
+
+                SelectedApkPath = null;
+
+                this.BeginInvoke(new Action(() =>
+                {
+                    this.DialogResult = DialogResult.Abort;
+                    this.Close();
+                }));
             }
         }
 
@@ -68,7 +75,20 @@ namespace APKdevastate
 
                 using (Process process = Process.Start(startInfo))
                 {
-                    process.WaitForExit();
+                    if (process == null)
+                        return false;
+
+                    process.OutputDataReceived += (s, args) => { };
+                    process.ErrorDataReceived += (s, args) => { };
+                    process.BeginOutputReadLine();
+                    process.BeginErrorReadLine();
+
+                    if (!process.WaitForExit(15000))
+                    {
+                        try { process.Kill(); } catch { }
+                        return false;
+                    }
+
                     return process.ExitCode == 0;
                 }
             }
@@ -132,10 +152,10 @@ namespace APKdevastate
 
         private void selectapkform_DragEnter(object sender, DragEventArgs e)
         {
-            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            if (e.Data != null && e.Data.GetDataPresent(DataFormats.FileDrop))
             {
-                string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
-                if (files.Length == 1 && Path.GetExtension(files[0]).ToLower() == ".apk")
+                string[] files = e.Data.GetData(DataFormats.FileDrop) as string[];
+                if (files != null && files.Length == 1 && Path.GetExtension(files[0]).ToLower() == ".apk")
                 {
                     e.Effect = DragDropEffects.Copy;
                 }
@@ -152,8 +172,11 @@ namespace APKdevastate
 
         private void selectapkform_DragDrop(object sender, DragEventArgs e)
         {
-            string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
-            if (files.Length > 0)
+            if (e.Data == null || !e.Data.GetDataPresent(DataFormats.FileDrop))
+                return;
+
+            string[] files = e.Data.GetData(DataFormats.FileDrop) as string[];
+            if (files != null && files.Length > 0)
             {
                 string apkPath = files[0];
                 if (Path.GetExtension(apkPath).ToLower() == ".apk")
@@ -168,6 +191,11 @@ namespace APKdevastate
                     //MessageBox.Show("erro", "erro", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
             }
+        }
+
+        private void label4_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }
